@@ -22,7 +22,7 @@ public class DBParam {
 	public static Map<DB, Integer> DB_NAME_LENGTH;
 	public static Map<DB, Integer> DB_USERNAME_LENGTH;
 	public static Map<DB, String> dbDefaultAdminMap;
-	
+
 	static {
 		JDBC_PREFIX = new HashMap<DB, String>();
 		JDBC_PREFIX.put(DB.MySQL, "jdbc:mysql://");
@@ -79,6 +79,7 @@ public class DBParam {
 	private String jdbcPrefix;
 	private String host = "localhost";
 	private String port = "";
+	private boolean winAuth;
 	
 	public DBParam() {
 	}
@@ -132,5 +133,12 @@ public class DBParam {
 	public String toString() {
 		return "Type: " + this.type + ", host: " + this.host + ", port: " + this.port;
 	}
-	
+
+	public boolean isWinAuth() {
+		return winAuth;
+	}
+
+	public void setWinAuth(boolean winAuth) {
+		this.winAuth = winAuth;
+	}
 }

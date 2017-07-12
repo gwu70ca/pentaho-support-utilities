@@ -14,43 +14,35 @@ import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.LDAPParam;
 import com.pentaho.install.LDAPParam.LDAP;
-import com.pentaho.install.input.DBNameInput;
-import com.pentaho.install.input.IntegerInput;
-import com.pentaho.install.input.SelectInput;
-import com.pentaho.install.input.StringInput;
+import com.pentaho.install.input.*;
 
 public class Connector {
-	static boolean WIN_AUTH = false;
-	static boolean DEBUG = false;
 	static String EXIT = "0";
 	
 	Scanner scanner;
 	
-	protected String NEW_LINE = System.lineSeparator();
+	String NEW_LINE = System.lineSeparator();
 	
 	String bar() {
 		return "==============================";
-	}
-	String shortBar() {
-		return "--------------------";
 	}
 	
 	String exitMenuEntry() {
 		return EXIT + ": Exit";
 	}
 	
-	private String menu() {
-		StringBuffer buf = new StringBuffer();
-		buf.append(NEW_LINE).append(bar()).append(NEW_LINE);
+	private String[] menuPrompt() {
+		StringBuffer txt = new StringBuffer();
+		txt.append(NEW_LINE).append(bar()).append(NEW_LINE);
 		
 		int index = 1;
-		buf.append(index++ + ": Test JDBC Connection").append(NEW_LINE);
-		buf.append(index++ + ": Test LDAP Connection").append(NEW_LINE);
-		buf.append(exitMenuEntry()).append(NEW_LINE);
-		
-		buf.append(bar()).append(NEW_LINE);
-		buf.append("What do you want: ");
-		return buf.toString();
+		txt.append(index++ + ": Test JDBC Connection").append(NEW_LINE);
+		txt.append(index++ + ": Test LDAP Connection").append(NEW_LINE);
+		txt.append(exitMenuEntry()).append(NEW_LINE);
+
+		txt.append(bar()).append(NEW_LINE);
+		txt.append("What do you want: ");
+		return new String[]{txt.toString(),"0,1,2"};
 	}
 	
 	public void execute() {
@@ -59,7 +51,8 @@ public class Connector {
 		try {
 			while (true) {
 				InstallUtil.newLine();
-				SelectInput rootInput = new SelectInput(menu(), new String[]{"0","1","2"});
+				String[] menu = menuPrompt();
+				SelectInput rootInput = new SelectInput(menu[0], menu[1].split(","));
 				InstallUtil.ask(scanner, rootInput);
 				
 				String index = rootInput.getValue();
@@ -109,6 +102,14 @@ public class Connector {
 		DBInstance dbParam = new DBInstance("", defaultAdminUser, "");
 		dbParam.setType(dbType);
 
+		boolean winAuth = false;
+		if (DB.MSSQLServer.equals(dbType)) {
+			BooleanInput wiaInput = new BooleanInput("Do you want to use Microsoft Windows Integration Authentication [y/n]?");
+			InstallUtil.ask(scanner, wiaInput);
+			winAuth = wiaInput.yes();
+			dbParam.setWinAuth(winAuth);
+		}
+
 		StringInput dbHostInput = new StringInput(String.format("Database hostname or IP address [%s]: ", dbParam.getHost()));
 		dbHostInput.setDefaultValue(dbParam.getHost());
 		InstallUtil.ask(scanner, dbHostInput);
@@ -118,16 +119,18 @@ public class Connector {
 		dbPortInput.setDefaultValue(dbParam.getPort());
 		InstallUtil.ask(scanner, dbPortInput);
 		dbParam.setPort(dbPortInput.getValue());
-		
-		StringInput adminUserInput = new StringInput("Database username [" + defaultAdminUser + "]: ");
-		adminUserInput.setDefaultValue(defaultAdminUser);
-		InstallUtil.ask(scanner, adminUserInput);
-		dbParam.setAdminUser(adminUserInput.getValue());
 
-		StringInput adminPasswordInput = new StringInput("Database password: ");
-		InstallUtil.ask(scanner, adminPasswordInput);
-		dbParam.setAdminPassword(adminPasswordInput.getValue());
-		
+		if (!winAuth) {
+			StringInput userInput = new StringInput("Database username [" + defaultAdminUser + "]: ");
+			userInput.setDefaultValue(defaultAdminUser);
+			InstallUtil.ask(scanner, userInput);
+			dbParam.setUsername(userInput.getValue());
+
+			StringInput passwordInput = new StringInput("Database password: ");
+			InstallUtil.ask(scanner, passwordInput);
+			dbParam.setPassword(passwordInput.getValue());
+		}
+
 		if (!dbType.equals(DB.Oracle)) {
 			DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dbParam.getType());
 			dbNameInput.setDefaultValue("");
@@ -135,44 +138,11 @@ public class Connector {
 			
 			dbParam.setName(dbNameInput.getValue());
 		}
-		
-		Properties connectionProps = new Properties();
-	    connectionProps.put("user", dbParam.getAdminUser());
-	    connectionProps.put("password", dbParam.getAdminPassword());
-	    
-	    Connection conn = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-		try {
-			String jdbcUrl = InstallUtil.getJdbcUrl(dbParam, "".equals(dbParam.getName()));
-			System.out.println("JDBC Url: " + jdbcUrl);
-			
-			System.out.print("Connecting to " + dbParam.getHost() + "@" + dbParam.getPort() + " ..... ");
-			conn = DriverManager.getConnection(jdbcUrl, connectionProps);
-			InstallUtil.output("\t[connected]\n");
-			
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery("SELECT 1");
-			if (rs.next()) {
-				System.out.println("Test SQL Result: " + rs.getInt(1));
-			}
-		} catch (SQLException sqle) {
-			String message = sqle.getMessage();
-			if (message.indexOf("No suitable driver") >= 0) {
-				System.out.println("Installer could not find the JDBC driver.");
-			} else {
-				System.out.println("Could not connect to database.");
-				printError(message);
-			}
-		} catch (Exception ce) {
-			String message = ce.getMessage();
-			System.out.println(message);
-			ce.printStackTrace();
-		} finally {
-			close(conn);
-			close(stmt);
-			close(rs);
-		}
+
+		System.out.println(dbParam);
+
+		JDBCConnector connector = new JDBCConnector();
+		connector.test(dbParam);
 	}
 	
 	private void close(Connection conn) {
@@ -252,12 +222,6 @@ public class Connector {
 
 		LDAPConnector connector = new LDAPConnector();
 		connector.test(ldapParam);
-	}
-
-	private void printError(String error) {
-		shortBar();
-		System.out.println(error);
-		shortBar();
 	}
 
 	public static void main(String[] args) {

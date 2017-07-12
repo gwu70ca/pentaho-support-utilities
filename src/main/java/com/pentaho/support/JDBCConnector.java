@@ -12,11 +12,11 @@ import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
 
 public class JDBCConnector {
-	static boolean WIN_AUTH = false;
 	static boolean DEBUG = false;
 
 	public static void main(String[] args) {
 		String dbHost = null, dbPort = null, dbName = null, dbUser = null, dbPass = null, dbType = null;
+		boolean winAuth = false;
 		
 		if (args.length > 0) {
 			try {
@@ -34,7 +34,7 @@ public class JDBCConnector {
 					} else if (args[i].equals("-T") || args[i].equals("--type")) {
 						dbType = args[++i];
 					} else if (args[i].equals("-I") || args[i].equals("--windows")) {
-						WIN_AUTH = true;						
+						winAuth = true;
 					} else if (args[i].equals("-D") || args[i].equals("--debug")) {
 						DEBUG = true;
 					}
@@ -57,12 +57,16 @@ public class JDBCConnector {
 			dbInstance.setType(databaseType);
 		}
 		
-		if (dbPass == null && !WIN_AUTH) {
+		if (dbPass == null && !winAuth) {
 			System.out.println("Dude, we need password");
 			System.exit(0);
 		}
 
-		testJdbcConnection(dbInstance);
+		if (DEBUG) {
+			System.out.println(dbInstance);
+		}
+
+		test(dbInstance);
 	}
 	
 	private static DBParam.DB guessDbType(String typeString) {
@@ -79,14 +83,14 @@ public class JDBCConnector {
 		return DBParam.DB.valueOf(str);
 	}
 
-	public static void testJdbcConnection(DBInstance dbInstance) {
+	public static void test(DBInstance dbInstance) {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
-			String url = InstallUtil.getJdbcUrl(dbInstance, dbInstance.getName()==null);
+			String url = InstallUtil.getJdbcUrl(dbInstance, dbInstance.getName()==null || dbInstance.getName().length()==0);
 			Properties connectionProps = new Properties();
-			if (WIN_AUTH && DBParam.DB.MSSQLServer.equals(dbInstance.getType())) {
+			if (dbInstance.isWinAuth() && DBParam.DB.MSSQLServer.equals(dbInstance.getType())) {
 			    url += ";integratedSecurity=true";
 			} else {
 				connectionProps.put("user", dbInstance.getUsername());
@@ -95,7 +99,7 @@ public class JDBCConnector {
 			System.out.println(url);
 							
 			System.out.print("Connecting to " + dbInstance.getHost() + "@" + dbInstance.getPort() + " ..... ");
-			if (!WIN_AUTH) {
+			if (!dbInstance.isWinAuth()) {
 				conn = DriverManager.getConnection(url, connectionProps);
 			} else {
 				conn = DriverManager.getConnection(url);
@@ -114,7 +118,13 @@ public class JDBCConnector {
 
 			System.out.println(success ? "[successed]" : "[failed]");
 		} catch (SQLException sqle) {
-			System.err.println(sqle);
+			String message = sqle.getMessage();
+			if (message.indexOf("No suitable driver") >= 0) {
+				System.out.println("Installer could not find the JDBC driver.");
+			} else {
+				System.out.println("Could not connect to database.");
+				System.err.println(message);
+			}
 		} finally {
 			if (conn != null) {
 				try {conn.close();}catch (Exception ex) {}
@@ -127,4 +137,5 @@ public class JDBCConnector {
 			}
 		}
 	}
+
 }
