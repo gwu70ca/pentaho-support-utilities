@@ -57,11 +57,11 @@ public class JDBCConnector {
 			dbInstance.setType(databaseType);
 		}
 		
-		if (dbPass == null) {
+		if (dbPass == null && !WIN_AUTH) {
 			System.out.println("Dude, we need password");
 			System.exit(0);
 		}
-				 
+
 		testJdbcConnection(dbInstance);
 	}
 	
@@ -104,11 +104,15 @@ public class JDBCConnector {
 			
 			stmt = conn.createStatement();
 			String validateSql = DBParam.getValidationQuery(dbInstance.getType());
-			System.out.println("Running validation query: " + validateSql);
+			System.out.print("Running validation query: " + validateSql + " ..... ");
 			rs = stmt.executeQuery(validateSql);
+
+			boolean success = false;
 			if (rs.next()) {
-				System.out.println("Test SQL success: " + (rs.getInt(1) != 0));
+				success = (rs.getInt(1) != 0);
 			}
+
+			System.out.println(success ? "[successed]" : "[failed]");
 		} catch (SQLException sqle) {
 			System.err.println(sqle);
 		} finally {
