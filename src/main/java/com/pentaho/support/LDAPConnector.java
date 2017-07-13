@@ -12,6 +12,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import com.pentaho.install.DBParam;
+import com.pentaho.install.InstallUtil;
 import com.pentaho.install.LDAPParam;
 
 public class LDAPConnector {
@@ -68,32 +69,20 @@ public class LDAPConnector {
 
 	public void test(LDAPParam ldapParam) {
 		if (LDAPParam.LDAP.APACHEDS.equals(ldapParam.getType())) {
-			String url = "ldap://" + ldapParam.getHost() + ":" + ldapParam.getPort();
-			testApacheDSConnection(url, ldapParam.getAdminUser(), ldapParam.getAdminPassword());
+			testApacheDSConnection(ldapParam);
 		} else if (LDAPParam.LDAP.MSAD.equals(ldapParam.getType())) {
-			String url = "ldap://" + ldapParam.getHost() + ":" + ldapParam.getPort();
-			testMSADConnection(url, ldapParam.getAdminUser(), ldapParam.getAdminPassword());
+			testMSADConnection(ldapParam);
 		}
 	}
-	
-	private void testMSADConnection(String url, String user, String password) {
-		DirContext ldapContext = null;
-		try {
-			System.out.println("Connecting to " + url);
 
-			Hashtable<String, String> ldapEnv = new Hashtable<String, String>(11);
-			ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-			ldapEnv.put(Context.PROVIDER_URL, url);
-			ldapEnv.put(Context.SECURITY_AUTHENTICATION, "simple");
-			ldapEnv.put(Context.SECURITY_PRINCIPAL, user);
-			ldapEnv.put(Context.SECURITY_CREDENTIALS, password);
-			ldapContext = new InitialDirContext(ldapEnv);
-			
-			System.out.println("\t[connected]");
-			
-			//searchUser(ldapContext,LDAPParam.LDAP.MSAD);
-			//searchRole(ldapContext,LDAPParam.LDAP.MSAD);
-			//searchGroup(ldapContext,LDAPParam.LDAP.MSAD);
+	private void testApacheDSConnection(LDAPParam ldapParam) {
+		DirContext ldapContext = null;
+
+		try {
+			ldapContext = connect(ldapParam);
+			if (ldapContext != null) {
+				System.out.println("\t[connected]");
+			}
 		} catch (Exception ex) {
 			System.err.println(ex);
 		} finally {
@@ -101,25 +90,69 @@ public class LDAPConnector {
 		}
 	}
 
-	private void testApacheDSConnection(String url, String user, String password) {
+	private void testMSADConnection(LDAPParam ldapParam) {
 		DirContext ldapContext = null;
-
 		try {
+			ldapContext = connect(ldapParam);
+			if (ldapContext != null) {
+				System.out.println("\t[connected]");
+			}
+		} catch (Exception ex) {
+			System.err.println(ex);
+		} finally {
+			close(ldapContext);
+		}
+	}
+
+	private DirContext connect(LDAPParam ldapParam) {
+		DirContext ldapContext = null;
+		try {
+			String url = "ldap://" + ldapParam.getHost() + ":" + ldapParam.getPort();
 			System.out.println("Connecting to " + url);
 
-			Hashtable<String, String> ldapEnv = new Hashtable<String, String>(11);
+			Hashtable<String, String> ldapEnv = new Hashtable<>(11);
 			ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
 			ldapEnv.put(Context.PROVIDER_URL, url);
 			ldapEnv.put(Context.SECURITY_AUTHENTICATION, "simple");
-			ldapEnv.put(Context.SECURITY_PRINCIPAL, user);
-			ldapEnv.put(Context.SECURITY_CREDENTIALS, password);
+			ldapEnv.put(Context.SECURITY_PRINCIPAL, ldapParam.getAdminUser());
+			ldapEnv.put(Context.SECURITY_CREDENTIALS, ldapParam.getAdminPassword());
 			ldapContext = new InitialDirContext(ldapEnv);
+		} catch (Exception ex) {
+			System.err.println(ex);
+		}
 
-			System.out.println("\t[connected]");
+		return ldapContext;
+	}
 
-			//searchUser(ldapContext,LDAPParam.LDAP.APACHEDS);
-			//searchRole(ldapContext,LDAPParam.LDAP.APACHEDS);
-			//searchGroup(ldapContext,LDAPParam.LDAP.APACHEDS);
+
+	public void searchUser(LDAPParam ldapParam) {
+		DirContext ldapContext = null;
+		try {
+			ldapContext = connect(ldapParam);
+			if (ldapContext != null) {
+				System.out.println("User search filter: " + ldapParam.getUserSearchFilter());
+				System.out.println("User search base: " + ldapParam.getUserSearchBase());
+
+				SearchControls searchControls = new SearchControls();
+				searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+				searchControls.setReturningAttributes(new String[]{"sn","cn"});
+
+				NamingEnumeration<SearchResult> results = ldapContext.search(ldapParam.getUserSearchBase(), ldapParam.getUserSearchFilter(), searchControls);
+
+				System.out.println("User search result:");
+				InstallUtil.bar();
+				while (results.hasMoreElements()) {
+					SearchResult searchResult = results.nextElement();
+
+					Attributes attrs = searchResult.getAttributes();
+					NamingEnumeration ne = attrs.getAll();
+					while (ne.hasMoreElements()) {
+						BasicAttribute attr = (BasicAttribute)ne.nextElement();
+						System.out.println("\t" + attr);
+					}
+					System.out.println("------------------------------");
+				}
+			}
 		} catch (Exception ex) {
 			System.err.println(ex);
 		} finally {

@@ -20,17 +20,32 @@ public class LDAPParam {
 	}
 
 	public static Map<LDAP, String> LDAP_PORT;
+	//public static Map<LDAP, String> LDAP_USER_SEARCH_FILTER;
+
+	public static final String AHACHEDS_USER_SEARCH_FILTER_CN = "(&(objectClass=person)(cn=%s))";
+
+	public static final String MSAD_USER_SEARCH_FILTER_CN = "(&(objectClass=user)(cn=%s))";
+	public static final String MSAD_USER_SEARCH_FILTER_SAM = "(&(objectClass=user)(sAMAccountName=%s))";
 
 	static {
 		LDAP_PORT = new HashMap<>();
 		LDAP_PORT.put(LDAP.APACHEDS, "10389");
 		LDAP_PORT.put(LDAP.MSAD, "389");
+
+		//LDAP_USER_SEARCH_FILTER = new HashMap<>();
+		//LDAP_USER_SEARCH_FILTER.put(LDAP.APACHEDS, "(objectClass=person)");
+		//LDAP_USER_SEARCH_FILTER.put(LDAP.MSAD, "(sAMAccountName=*)");
 	}
 
 	private String adminUser, adminPassword;
 	private LDAP type;
 	private String host = "localhost";
 	private String port = "";
+
+	private String userSearchFilter;
+	private String userSearchBase;
+	private boolean useSamAccountName;
+
 
 	public LDAPParam() {
 	}
@@ -79,5 +94,29 @@ public class LDAPParam {
 	public String toString() {
 		return "Host: " + this.host + ", Port: " + this.port + ", User: " + this.adminUser + ", Pass: " + this.adminPassword
 				+ ", type: " + this.type;
+	}
+
+	public String getUserSearchFilter() {
+		return userSearchFilter;
+	}
+
+	public void setUserSearchFilter(String userSearchFilter) {
+		this.userSearchFilter = userSearchFilter;
+	}
+
+	public String getUserSearchBase() {
+		return userSearchBase;
+	}
+
+	public void setUserSearchBase(String userSearchBase) {
+		this.userSearchBase = userSearchBase;
+	}
+
+	public boolean isUseSamAccountName() {
+		return useSamAccountName;
+	}
+
+	public void setUseSamAccountName(boolean useSamAccountName) {
+		this.useSamAccountName = useSamAccountName;
 	}
 }

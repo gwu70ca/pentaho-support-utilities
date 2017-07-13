@@ -22,25 +22,21 @@ public class Connector {
 	Scanner scanner;
 	
 	String NEW_LINE = System.lineSeparator();
-	
-	String bar() {
-		return "==============================";
-	}
-	
+
 	String exitMenuEntry() {
 		return EXIT + ": Exit";
 	}
 	
 	private String[] menuPrompt() {
 		StringBuffer txt = new StringBuffer();
-		txt.append(NEW_LINE).append(bar()).append(NEW_LINE);
+		txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 		
 		int index = 1;
 		txt.append(index++ + ": Test JDBC Connection").append(NEW_LINE);
 		txt.append(index++ + ": Test LDAP Connection").append(NEW_LINE);
 		txt.append(exitMenuEntry()).append(NEW_LINE);
 
-		txt.append(bar()).append(NEW_LINE);
+		txt.append(InstallUtil.bar()).append(NEW_LINE);
 		txt.append("What do you want: ");
 		return new String[]{txt.toString(),"0,1,2"};
 	}
@@ -77,7 +73,7 @@ public class Connector {
 	private String[] dbTypePrompt() {
 		StringBuffer txt = new StringBuffer();
 		StringBuffer opt = new StringBuffer();
-		txt.append(NEW_LINE).append(bar()).append(NEW_LINE);
+		txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 		
 		int index = 1;
 		for (DB db : DB.values()) {
@@ -85,7 +81,7 @@ public class Connector {
 			txt.append(index++).append(": ").append(db).append(NEW_LINE);
 		}
 		
-		txt.append(bar()).append(NEW_LINE);
+		txt.append(InstallUtil.bar()).append(NEW_LINE);
 		txt.append("Select the database type: ");
 		return new String[]{txt.toString(), opt.substring(0, opt.length()-1)};
 	}
@@ -104,7 +100,7 @@ public class Connector {
 
 		boolean winAuth = false;
 		if (DB.MSSQLServer.equals(dbType)) {
-			BooleanInput wiaInput = new BooleanInput("Do you want to use Microsoft Windows Integration Authentication [y/n]?");
+			BooleanInput wiaInput = new BooleanInput("Do you want to use Microsoft Windows Integration Authentication [y/n]? ");
 			InstallUtil.ask(scanner, wiaInput);
 			winAuth = wiaInput.yes();
 			dbParam.setWinAuth(winAuth);
@@ -178,7 +174,7 @@ public class Connector {
 	private String[] ldapTypePrompt() {
 		StringBuffer txt = new StringBuffer();
 		StringBuffer opt = new StringBuffer();
-		txt.append(NEW_LINE).append(bar()).append(NEW_LINE);
+		txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 		
 		int index = 1;
 		for (LDAP ldap : LDAP.values()) {
@@ -186,7 +182,7 @@ public class Connector {
 			txt.append(index++).append(": ").append(ldap.getFullname()).append(NEW_LINE);
 		}
 		
-		txt.append(bar()).append(NEW_LINE);
+		txt.append(InstallUtil.bar()).append(NEW_LINE);
 		txt.append("Select the database type: ");
 		return new String[]{txt.toString(),opt.substring(0, opt.length()-1)};
 	}
@@ -222,6 +218,28 @@ public class Connector {
 
 		LDAPConnector connector = new LDAPConnector();
 		connector.test(ldapParam);
+
+		BooleanInput searchUserInput = new BooleanInput("Do you want to search user [y/n]? ");
+		InstallUtil.ask(scanner, searchUserInput);
+		if (searchUserInput.yes()) {
+
+			if (LDAP.MSAD.equals(ldapType)) {
+				BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
+				InstallUtil.ask(scanner,useSamInput);
+				ldapParam.setUseSamAccountName(useSamInput.yes());
+			}
+
+			String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
+			StringInput ldapUserInput = new StringInput(accountType);
+			InstallUtil.ask(scanner, ldapUserInput);
+			ldapParam.setUserSearchFilter(InstallUtil.getLdapUserSearchFilter(ldapParam, ldapUserInput.getValue()));
+
+			StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
+			InstallUtil.ask(scanner, ldapSearchBaseInput);
+			ldapParam.setUserSearchBase(ldapSearchBaseInput.getValue());
+
+			connector.searchUser(ldapParam);
+		}
 	}
 
 	public static void main(String[] args) {

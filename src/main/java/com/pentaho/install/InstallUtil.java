@@ -20,6 +20,10 @@ public class InstallUtil {
 	public static void exit() {
 		System.exit(0);
 	}
+
+	public static String bar() {
+		return "==============================";
+	}
 	
 	public static String getFilenameFromPath(String path) {
 		path = path.replace("\\", "/");
@@ -93,5 +97,14 @@ public class InstallUtil {
 					+ (isAdmin ? "" : dbInstance.getName());
 		}
 		return url;
+	}
+
+	public static String getLdapUserSearchFilter(LDAPParam param, String accountName) {
+		String searchFilter = LDAPParam.AHACHEDS_USER_SEARCH_FILTER_CN;
+		if (LDAPParam.LDAP.MSAD.equals(param.getType())) {
+			searchFilter = param.isUseSamAccountName() ? LDAPParam.MSAD_USER_SEARCH_FILTER_SAM : LDAPParam.MSAD_USER_SEARCH_FILTER_CN;
+		}
+
+		return String.format(searchFilter, accountName);
 	}
 }
