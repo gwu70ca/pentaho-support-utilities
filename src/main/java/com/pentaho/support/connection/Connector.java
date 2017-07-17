@@ -1,11 +1,8 @@
-package com.pentaho.support;
+package com.pentaho.support.connection;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Properties;
 import java.util.Scanner;
 
 import com.pentaho.install.DBInstance;
@@ -140,37 +137,7 @@ public class Connector {
 		JDBCConnector connector = new JDBCConnector();
 		connector.test(dbParam);
 	}
-	
-	private void close(Connection conn) {
-		try {
-			if (conn != null) {
-				conn.close();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void close(Statement stmt) {
-		try {
-			if (stmt != null) {
-				stmt.close();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void close(ResultSet rs) {
-		try {
-			if (rs != null) {
-				rs.close();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
+
 	private String[] ldapTypePrompt() {
 		StringBuffer txt = new StringBuffer();
 		StringBuffer opt = new StringBuffer();
@@ -217,28 +184,57 @@ public class Connector {
 		ldapParam.setAdminPassword(adminPasswordInput.getValue());
 
 		LDAPConnector connector = new LDAPConnector();
-		connector.test(ldapParam);
+		boolean connected = connector.test(ldapParam);
 
-		BooleanInput searchUserInput = new BooleanInput("Do you want to search user [y/n]? ");
-		InstallUtil.ask(scanner, searchUserInput);
-		if (searchUserInput.yes()) {
+		if (connected) {
+			BooleanInput searchUserInput = new BooleanInput("\nDo you want to search user [y/n]? ");
+			InstallUtil.ask(scanner, searchUserInput);
+			if (searchUserInput.yes()) {
+				if (LDAP.MSAD.equals(ldapType)) {
+					BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
+					InstallUtil.ask(scanner,useSamInput);
+					ldapParam.setUseSamAccountName(useSamInput.yes());
+				}
 
-			if (LDAP.MSAD.equals(ldapType)) {
-				BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
-				InstallUtil.ask(scanner,useSamInput);
-				ldapParam.setUseSamAccountName(useSamInput.yes());
+				String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
+				StringInput ldapUserInput = new StringInput(accountType);
+				//Allow empty name to return all users
+				ldapUserInput.setDefaultValue("");
+				InstallUtil.ask(scanner, ldapUserInput);
+				ldapParam.setUserSearchFilter(InstallUtil.getLdapUserSearchFilter(ldapParam, ldapUserInput.getValue()));
+
+				StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
+				InstallUtil.ask(scanner, ldapSearchBaseInput);
+				ldapParam.setUserSearchBase(ldapSearchBaseInput.getValue());
+
+				connector.searchUser(ldapParam);
 			}
 
-			String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
-			StringInput ldapUserInput = new StringInput(accountType);
-			InstallUtil.ask(scanner, ldapUserInput);
-			ldapParam.setUserSearchFilter(InstallUtil.getLdapUserSearchFilter(ldapParam, ldapUserInput.getValue()));
+			ldapParam.setUseSamAccountName(false);
+			InstallUtil.newLine();
 
-			StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
-			InstallUtil.ask(scanner, ldapSearchBaseInput);
-			ldapParam.setUserSearchBase(ldapSearchBaseInput.getValue());
+			BooleanInput searchGroupInput = new BooleanInput("\nDo you want to search group [y/n]? ");
+			InstallUtil.ask(scanner, searchGroupInput);
+			if (searchGroupInput.yes()) {
+				if (LDAP.MSAD.equals(ldapType)) {
+					BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
+					InstallUtil.ask(scanner,useSamInput);
+					ldapParam.setUseSamAccountName(useSamInput.yes());
+				}
 
-			connector.searchUser(ldapParam);
+				String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
+				StringInput ldapGroupInput = new StringInput(accountType);
+				//Allow empty name to return all groups
+				ldapGroupInput.setDefaultValue("");
+				InstallUtil.ask(scanner, ldapGroupInput);
+				ldapParam.setGroupSearchFilter(InstallUtil.getLdapGroupSearchFilter(ldapParam, ldapGroupInput.getValue()));
+
+				StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
+				InstallUtil.ask(scanner, ldapSearchBaseInput);
+				ldapParam.setGroupSearchBase(ldapSearchBaseInput.getValue());
+
+				connector.searchGroup(ldapParam);
+			}
 		}
 	}
 

@@ -102,9 +102,30 @@ public class InstallUtil {
 	public static String getLdapUserSearchFilter(LDAPParam param, String accountName) {
 		String searchFilter = LDAPParam.AHACHEDS_USER_SEARCH_FILTER_CN;
 		if (LDAPParam.LDAP.MSAD.equals(param.getType())) {
-			searchFilter = param.isUseSamAccountName() ? LDAPParam.MSAD_USER_SEARCH_FILTER_SAM : LDAPParam.MSAD_USER_SEARCH_FILTER_CN;
+			searchFilter = LDAPParam.MSAD_USER_SEARCH_FILTER;
 		}
 
-		return String.format(searchFilter, accountName);
+		if (isBlankOrNull(accountName)) {
+			return searchFilter;
+		}
+
+		String accountFilter = "(" + (param.isUseSamAccountName() ? "sAMAccountName" : "cn") + "=%s)";
+		return "(&" + searchFilter + String.format(accountFilter, accountName) + ")";
 	}
+
+	public static String getLdapGroupSearchFilter(LDAPParam param, String accountName) {
+		String searchFilter = LDAPParam.AHACHEDS_GROUP_SEARCH_FILTER_CN;
+		if (LDAPParam.LDAP.MSAD.equals(param.getType())) {
+			searchFilter = LDAPParam.MSAD_GROUP_SEARCH_FILTER;
+		}
+
+		if (isBlankOrNull(accountName)) {
+			return searchFilter;
+		}
+
+		String accountFilter = "(" + (param.isUseSamAccountName() ? "sAMAccountName" : "cn") + "=%s)";
+		return "(&" + searchFilter + String.format(accountFilter, accountName) + ")";
+	}
+
+
 }

@@ -1,4 +1,4 @@
-package com.pentaho.support;
+package com.pentaho.support.security;
 
 import java.security.Provider;
 import java.security.Provider.Service;

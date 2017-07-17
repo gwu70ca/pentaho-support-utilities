@@ -1,4 +1,4 @@
-package com.pentaho.support;
+package com.pentaho.support.connection;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

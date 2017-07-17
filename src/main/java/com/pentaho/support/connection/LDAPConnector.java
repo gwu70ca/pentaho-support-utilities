@@ -1,4 +1,4 @@
-package com.pentaho.support;
+package com.pentaho.support.connection;
 
 import java.util.Hashtable;
 
@@ -11,7 +11,6 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
-import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.LDAPParam;
 
@@ -67,20 +66,40 @@ public class LDAPConnector {
 		return LDAPParam.LDAP.valueOf(str);
 	}
 
-	public void test(LDAPParam ldapParam) {
+	public boolean test(LDAPParam ldapParam) {
+		boolean connected = false;
 		if (LDAPParam.LDAP.APACHEDS.equals(ldapParam.getType())) {
-			testApacheDSConnection(ldapParam);
+			connected = testApacheDSConnection(ldapParam);
 		} else if (LDAPParam.LDAP.MSAD.equals(ldapParam.getType())) {
-			testMSADConnection(ldapParam);
+			connected = testMSADConnection(ldapParam);
 		}
+		return connected;
 	}
 
-	private void testApacheDSConnection(LDAPParam ldapParam) {
+	private boolean testApacheDSConnection(LDAPParam ldapParam) {
+		boolean connected = false;
 		DirContext ldapContext = null;
-
 		try {
 			ldapContext = connect(ldapParam);
 			if (ldapContext != null) {
+				System.out.println("\t[connected]");
+				connected = true;
+			}
+		} catch (Exception ex) {
+			System.err.println(ex);
+		} finally {
+			close(ldapContext);
+		}
+		return connected;
+	}
+
+	private boolean testMSADConnection(LDAPParam ldapParam) {
+		boolean connected = false;
+		DirContext ldapContext = null;
+		try {
+			ldapContext = connect(ldapParam);
+			if (ldapContext != null) {
+				connected = true;
 				System.out.println("\t[connected]");
 			}
 		} catch (Exception ex) {
@@ -88,20 +107,7 @@ public class LDAPConnector {
 		} finally {
 			close(ldapContext);
 		}
-	}
-
-	private void testMSADConnection(LDAPParam ldapParam) {
-		DirContext ldapContext = null;
-		try {
-			ldapContext = connect(ldapParam);
-			if (ldapContext != null) {
-				System.out.println("\t[connected]");
-			}
-		} catch (Exception ex) {
-			System.err.println(ex);
-		} finally {
-			close(ldapContext);
-		}
+		return connected;
 	}
 
 	private DirContext connect(LDAPParam ldapParam) {
@@ -130,16 +136,57 @@ public class LDAPConnector {
 		try {
 			ldapContext = connect(ldapParam);
 			if (ldapContext != null) {
-				System.out.println("User search filter: " + ldapParam.getUserSearchFilter());
-				System.out.println("User search base: " + ldapParam.getUserSearchBase());
+				String searchFilter = ldapParam.getUserSearchFilter();
+				String searchBase = ldapParam.getUserSearchBase();
+
+				System.out.println("User search filter: " + searchFilter);
+				System.out.println("User search base: " + searchBase);
 
 				SearchControls searchControls = new SearchControls();
 				searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 				searchControls.setReturningAttributes(new String[]{"sn","cn"});
 
-				NamingEnumeration<SearchResult> results = ldapContext.search(ldapParam.getUserSearchBase(), ldapParam.getUserSearchFilter(), searchControls);
+				NamingEnumeration<SearchResult> results = ldapContext.search(searchBase, searchFilter, searchControls);
 
 				System.out.println("User search result:");
+				InstallUtil.bar();
+				while (results.hasMoreElements()) {
+					SearchResult searchResult = results.nextElement();
+
+					Attributes attrs = searchResult.getAttributes();
+					NamingEnumeration ne = attrs.getAll();
+					while (ne.hasMoreElements()) {
+						BasicAttribute attr = (BasicAttribute)ne.nextElement();
+						System.out.println("\t" + attr);
+					}
+					System.out.println("------------------------------");
+				}
+			}
+		} catch (Exception ex) {
+			System.err.println(ex);
+		} finally {
+			close(ldapContext);
+		}
+	}
+
+	public void searchGroup(LDAPParam ldapParam) {
+		DirContext ldapContext = null;
+		try {
+			ldapContext = connect(ldapParam);
+			if (ldapContext != null) {
+				String searchFilter = ldapParam.getGroupSearchFilter();
+				String searchBase = ldapParam.getGroupSearchBase();
+
+				System.out.println("Group search filter: " + searchFilter);
+				System.out.println("Group search base: " + searchBase);
+
+				SearchControls searchControls = new SearchControls();
+				searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+				searchControls.setReturningAttributes(new String[]{"uniqueMember","cn"});
+
+				NamingEnumeration<SearchResult> results = ldapContext.search(searchBase, searchFilter, searchControls);
+
+				System.out.println("Group search result:");
 				InstallUtil.bar();
 				while (results.hasMoreElements()) {
 					SearchResult searchResult = results.nextElement();

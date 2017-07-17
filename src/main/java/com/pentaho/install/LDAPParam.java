@@ -22,10 +22,11 @@ public class LDAPParam {
 	public static Map<LDAP, String> LDAP_PORT;
 	//public static Map<LDAP, String> LDAP_USER_SEARCH_FILTER;
 
-	public static final String AHACHEDS_USER_SEARCH_FILTER_CN = "(&(objectClass=person)(cn=%s))";
+	public static final String AHACHEDS_USER_SEARCH_FILTER_CN = "(objectClass=person)";
+	public static final String AHACHEDS_GROUP_SEARCH_FILTER_CN = "(objectClass=groupOfUniqueNames)";
 
-	public static final String MSAD_USER_SEARCH_FILTER_CN = "(&(objectClass=user)(cn=%s))";
-	public static final String MSAD_USER_SEARCH_FILTER_SAM = "(&(objectClass=user)(sAMAccountName=%s))";
+	public static final String MSAD_USER_SEARCH_FILTER = "(objectClass=user)";
+	public static final String MSAD_GROUP_SEARCH_FILTER = "(objectClass=group)";
 
 	static {
 		LDAP_PORT = new HashMap<>();
@@ -45,7 +46,8 @@ public class LDAPParam {
 	private String userSearchFilter;
 	private String userSearchBase;
 	private boolean useSamAccountName;
-
+	private String groupSearchFilter;
+	private String groupSearchBase;
 
 	public LDAPParam() {
 	}
@@ -118,5 +120,21 @@ public class LDAPParam {
 
 	public void setUseSamAccountName(boolean useSamAccountName) {
 		this.useSamAccountName = useSamAccountName;
+	}
+
+	public String getGroupSearchFilter() {
+		return groupSearchFilter;
+	}
+
+	public void setGroupSearchFilter(String groupSearchFilter) {
+		this.groupSearchFilter = groupSearchFilter;
+	}
+
+	public String getGroupSearchBase() {
+		return groupSearchBase;
+	}
+
+	public void setGroupSearchBase(String groupSearchBase) {
+		this.groupSearchBase = groupSearchBase;
 	}
 }
