@@ -20,7 +20,6 @@ public class LDAPParam {
 	}
 
 	public static Map<LDAP, String> LDAP_PORT;
-	//public static Map<LDAP, String> LDAP_USER_SEARCH_FILTER;
 
 	public static final String AHACHEDS_USER_SEARCH_FILTER_CN = "(objectClass=person)";
 	public static final String AHACHEDS_GROUP_SEARCH_FILTER_CN = "(objectClass=groupOfUniqueNames)";
@@ -32,10 +31,6 @@ public class LDAPParam {
 		LDAP_PORT = new HashMap<>();
 		LDAP_PORT.put(LDAP.APACHEDS, "10389");
 		LDAP_PORT.put(LDAP.MSAD, "389");
-
-		//LDAP_USER_SEARCH_FILTER = new HashMap<>();
-		//LDAP_USER_SEARCH_FILTER.put(LDAP.APACHEDS, "(objectClass=person)");
-		//LDAP_USER_SEARCH_FILTER.put(LDAP.MSAD, "(sAMAccountName=*)");
 	}
 
 	private String adminUser, adminPassword;
