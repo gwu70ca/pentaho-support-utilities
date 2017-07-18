@@ -6,7 +6,8 @@ import java.util.Map;
 public class LDAPParam {
 	public enum LDAP {
 		APACHEDS ("Apache Directory Server"),
-		MSAD ("Microsoft Active Directory");
+		MSAD ("Microsoft Active Directory"),
+		OPENLDAP ("Open LDAP");
 
 		private final String fullname;
 
@@ -31,6 +32,7 @@ public class LDAPParam {
 		LDAP_PORT = new HashMap<>();
 		LDAP_PORT.put(LDAP.APACHEDS, "10389");
 		LDAP_PORT.put(LDAP.MSAD, "389");
+		LDAP_PORT.put(LDAP.OPENLDAP, "389");
 	}
 
 	private String adminUser, adminPassword;

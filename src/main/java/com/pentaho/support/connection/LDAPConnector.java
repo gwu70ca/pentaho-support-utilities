@@ -62,38 +62,13 @@ public class LDAPConnector {
 			return LDAPParam.LDAP.MSAD;
 		} else if (str.contains("apache") || str.contains("apacheds")) {
 			return LDAPParam.LDAP.APACHEDS;
+		} else if (str.contains("openldap")) {
+			return LDAPParam.LDAP.OPENLDAP;
 		}
 		return LDAPParam.LDAP.valueOf(str);
 	}
 
 	public boolean test(LDAPParam ldapParam) {
-		boolean connected = false;
-		if (LDAPParam.LDAP.APACHEDS.equals(ldapParam.getType())) {
-			connected = testApacheDSConnection(ldapParam);
-		} else if (LDAPParam.LDAP.MSAD.equals(ldapParam.getType())) {
-			connected = testMSADConnection(ldapParam);
-		}
-		return connected;
-	}
-
-	private boolean testApacheDSConnection(LDAPParam ldapParam) {
-		boolean connected = false;
-		DirContext ldapContext = null;
-		try {
-			ldapContext = connect(ldapParam);
-			if (ldapContext != null) {
-				System.out.println("\t[connected]");
-				connected = true;
-			}
-		} catch (Exception ex) {
-			System.err.println(ex);
-		} finally {
-			close(ldapContext);
-		}
-		return connected;
-	}
-
-	private boolean testMSADConnection(LDAPParam ldapParam) {
 		boolean connected = false;
 		DirContext ldapContext = null;
 		try {
