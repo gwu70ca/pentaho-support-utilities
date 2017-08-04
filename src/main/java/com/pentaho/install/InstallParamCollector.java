@@ -1,17 +1,13 @@
 package com.pentaho.install;
 
+import com.pentaho.install.DBParam.DB;
+import com.pentaho.install.post.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
-
-import com.pentaho.install.DBParam.DB;
-import com.pentaho.install.post.DatabaseChooser;
-import com.pentaho.install.post.DatabaseInfoCollector;
-import com.pentaho.install.post.LocationChooser;
-import com.pentaho.install.post.PostInstaller;
-import com.pentaho.install.post.ServerChooser;
 
 public class InstallParamCollector {
 	String installCfgFile;
@@ -41,7 +37,6 @@ public class InstallParamCollector {
 		//Get Pentaho server type
 		if (PostInstaller.SILENT) {
 			installParam.pentahoServerType = PentahoServerParam.SERVER.valueOf(installProp.getProperty("server_type"));
-			
 		} else {
 			ServerChooser sc = new ServerChooser(scanner);
 			ActionResult result = sc.execute();
@@ -58,11 +53,6 @@ public class InstallParamCollector {
 			loc.setServerType(installParam.pentahoServerType);
 			ActionResult result = loc.execute();
 			installParam.installDir = (String)result.getReturnedValue();
-		}
-		File dir = new File(installParam.installDir);
-		if (!(dir.exists() && dir.isDirectory() && dir.canWrite() && dir.canRead())) {
-			InstallUtil.output("Invalid install dir:" + installParam.installDir);
-			InstallUtil.exit();
 		}
 		InstallUtil.output("Install directory: " + installParam.installDir);
 		InstallUtil.output("\n");
