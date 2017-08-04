@@ -1,31 +1,34 @@
 package com.pentaho.install.post;
 
+import com.pentaho.install.*;
+import com.pentaho.install.DBParam.DB;
+import com.pentaho.install.PentahoServerParam.SERVER;
+import com.pentaho.install.post.tomcat.conf.server.Server;
+import org.w3c.dom.Comment;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.pentaho.install.DBInstance;
-import com.pentaho.install.DBParam;
-import com.pentaho.install.DBParam.DB;
-import com.pentaho.install.InstallParam;
-import com.pentaho.install.InstallUtil;
-import com.pentaho.install.PentahoServerParam;
-import com.pentaho.install.PentahoServerParam.SERVER;
 
 public class TomcatXMLHelper extends XMLHelper {
 	static Map<String, String> RESOURCE_MAP;
@@ -163,4 +166,50 @@ public class TomcatXMLHelper extends XMLHelper {
 			e.setAttribute(key, RESOURCE_MAP.get(key));
 		}
 	}
+
+	public void create() throws Exception {
+        Server tomcatServer = new Server();
+
+        XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
+        StringWriter stringWriter = new StringWriter();
+        XMLStreamWriter writer = outputFactory.createXMLStreamWriter(stringWriter);
+
+        JAXBContext context = JAXBContext.newInstance(Server.class);
+        Marshaller marshaller = context.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+        marshaller.marshal(tomcatServer, writer);
+        writer.close();
+
+        String xmlString = stringWriter.toString();
+        //System.out.println(xmlString);
+
+        DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        Document doc = documentBuilder.parse(new InputSource(new StringReader(xmlString)));
+
+        addComment(doc);
+
+
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+        DOMSource source = new DOMSource(doc);
+        //StreamResult result = new StreamResult(new File(ctxFile));
+        StreamResult result = new StreamResult(System.out);
+        transformer.transform(source, result);
+    }
+
+    private void addComment(Document doc) {
+        Element e = doc.getDocumentElement();
+	    String tagName = e.getTagName();
+        System.out.println("tag: " + tagName);
+
+        if ("Server".equals(tagName)) {
+            Comment comment = doc.createComment("Comment before Server");
+            e.getParentNode().insertBefore(comment, e);
+        }
+
+    }
 }

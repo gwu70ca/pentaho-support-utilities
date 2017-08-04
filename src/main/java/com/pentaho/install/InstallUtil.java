@@ -1,8 +1,9 @@
 package com.pentaho.install;
 
-import java.util.Scanner;
-
 import com.pentaho.install.DBParam.DB;
+
+import java.io.File;
+import java.util.Scanner;
 
 public class InstallUtil {
 	public static boolean isBlankOrNull(String s) {
@@ -75,6 +76,10 @@ public class InstallUtil {
 	public static void newLine() {
 		System.out.println();
 	}
+
+	public static boolean isOracle(DBInstance dbInstance) {
+	    return dbInstance.getType().equals(DB.Oracle);
+    }
 	
 	public static String getJdbcUrl(DBInstance dbInstance) {
 		return getJdbcUrl(dbInstance, false);
@@ -127,5 +132,36 @@ public class InstallUtil {
 		return "(&" + searchFilter + String.format(accountFilter, accountName) + ")";
 	}
 
+	public static boolean isBA(InstallParam param) {
+	    return param.pentahoServerType.equals(PentahoServerParam.SERVER.BA);
+    }
 
+    public static boolean isDI(InstallParam param) {
+        return param.pentahoServerType.equals(PentahoServerParam.SERVER.DI);
+    }
+
+    public static boolean isHYBRID(InstallParam param) {
+        return param.pentahoServerType.equals(PentahoServerParam.SERVER.HYBRID);
+    }
+
+    public static String getTomcatContextFilePath(InstallParam installParam) throws Exception {
+        String tomcatDir = installParam.installDir + "/server/" + PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType) + "/" + installParam.appServerDir;
+        String appName = InstallUtil.isBA(installParam) ? "pentaho" : "pentaho-di";
+        String contextDir = tomcatDir + "/webapps/" + appName + "/META-INF";
+        contextDir = contextDir.replace('/', File.separatorChar);
+        return contextDir + File.separator + "context.xml";
+    }
+
+    public static String getTomcatServerConfigFilePath(InstallParam installParam) throws Exception {
+        String tomcatDir = installParam.installDir + "/server/" + PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType) + "/" + installParam.appServerDir;
+        String contextDir = tomcatDir + "/conf";
+        contextDir = contextDir.replace('/', File.separatorChar);
+        return contextDir + File.separator + "context.xml";
+    }
+
+    public static String getJackrabbitRepositoryFilePath(InstallParam installParam) throws Exception {
+        String jackrabbitDir = installParam.installDir + "/server/" + PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType) + "/pentaho-solutions/system/jackrabbit" ;
+        jackrabbitDir = jackrabbitDir.replace('/', File.separatorChar);
+        return jackrabbitDir + File.separator + "repository.xml";
+    }
 }

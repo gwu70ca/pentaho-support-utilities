@@ -1,22 +1,28 @@
 package com.pentaho.install;
 
+import com.pentaho.install.PentahoServerParam.SERVER;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.pentaho.install.PentahoServerParam.SERVER;
-
 public class DBParam {
 	public enum DB {MySQL, PostgreSQL, Oracle, MSSQLServer}
-	
+
+	public static String RESOURCE_NAME_HIBERNATE = "jdbc/Hibernate";
+	public static String RESOURCE_NAME_AUDIT = "jdbc/Audit";
+	public static String RESOURCE_NAME_QUARTZ = "jdbc/Quartz";
+	public static String NAME_PENTAHO_OPERATIONS_MART = "jdbc/pentaho_operations_mart";
+	public static String NAME_PDI_OPERATIONS_MART = "jdbc/PDI_Operations_Mart";
+
 	public static String DB_NAME_HIBERNATE = "hibernate";
 	public static String DB_NAME_JACKRABBIT = "jackrabbit";
 	public static String DB_NAME_QUARTZ = "quartz";
-	
+
 	public static String DB_NAME_HIBERNATE_DI = "di_hibernate";
 	public static String DB_NAME_JACKRABBIT_DI = "di_jackrabbit";
 	public static String DB_NAME_QUARTZ_DI = "di_quartz";
-	
+
 	public static Map<DB, String> JDBC_PREFIX;
 	public static Map<DB, String> DB_PORT;
 	public static Map<DB, Integer> DB_NAME_LENGTH;
@@ -74,12 +80,12 @@ public class DBParam {
 		return dbType == DB.Oracle ? "select 1 from dual" : "select 1";
 	}
 	
-	private String adminUser, adminPassword;
-	private DB type;
-	private String jdbcPrefix;
-	private String host = "localhost";
-	private String port = "";
-	private boolean winAuth;
+	protected String adminUser, adminPassword;
+	protected DB type = DBParam.DB.PostgreSQL;
+	protected String jdbcPrefix;
+	protected String host = "localhost";
+	protected String port = "";
+	protected boolean winAuth;
 	
 	public DBParam() {
 	}

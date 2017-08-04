@@ -1,5 +1,11 @@
 package com.pentaho.install.post;
 
+import com.pentaho.install.DBInstance;
+import com.pentaho.install.DBParam.DB;
+import com.pentaho.install.InstallUtil;
+import com.pentaho.install.Logger;
+import com.pentaho.install.input.BooleanInput;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -8,17 +14,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Scanner;
-
-import com.pentaho.install.DBInstance;
-import com.pentaho.install.DBParam.DB;
-import com.pentaho.install.InstallUtil;
-import com.pentaho.install.Logger;
-import com.pentaho.install.input.BooleanInput;
+import java.util.*;
 
 public class SqlScriptRunner {
 	public static boolean DRYRUN = false;
@@ -57,7 +53,7 @@ public class SqlScriptRunner {
 			
 			if (!DRYRUN) {
 				conn = DriverManager.getConnection(url, connectionProps);
-				InstallUtil.output("\tconnected\n");
+				InstallUtil.output("\t[connected]\n");
 			}
 			
 			if (!DRYRUN) {
@@ -102,9 +98,9 @@ public class SqlScriptRunner {
 			DBInstance instance = dbInstanceMap.get(dbName);
 			String dbFileName = instance.getDbFileName();
 			
-			InstallUtil.output("Creating database " + instance.getName());
-			Logger.log("\n--------------------\n");
-			Logger.log("Script file: " + dbFileName);
+			InstallUtil.output("Creating database " + instance.getName() + ", " + instance.getDefaultUsername() + ", " + instance.getUsername());
+			InstallUtil.output("Script file: " + dbFileName);
+			InstallUtil.output("\n--------------------\n");
 			
 			File sqlFile = new File(dir, dbFileName);
 			List<String> sqlList = new ArrayList<String>();
@@ -231,6 +227,9 @@ public class SqlScriptRunner {
 	
 	//TODO ask if enable remote access for mysql
 	private String polish(String sql, DBInstance instance) {
+		if (PostInstaller.DEBUG) {
+
+		}
 		if (DB.MySQL.equals(instance.getType())) {
 			if (instance.isCustomed()) {
 				sql = sql.replace(instance.getDefaultName(), instance.getName())
