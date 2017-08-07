@@ -1,11 +1,11 @@
 package com.pentaho.install.post;
 
-import java.io.File;
-import java.util.Scanner;
-
 import com.pentaho.install.InstallParam;
 import com.pentaho.install.InstallParamCollector;
 import com.pentaho.install.InstallUtil;
+
+import java.io.File;
+import java.util.Scanner;
 
 /**
  * This installer does everything after you run the IZPack for archive install mode
@@ -25,7 +25,7 @@ public class PostInstaller {
 	Scanner scanner;
 	
 	public static void main(String[] args) throws Exception {
-		InstallUtil.output("This installer performs Pentaho Business Analytics (BA) Server or Data Integration (DI) Server Post Installation (Archive mode)");
+		InstallUtil.output("This installer performs Pentaho Business Analytics (BA) Server or Data Integration (DI) Server Post Installation (Version 6.1, Archive mode)");
 		
 		String cfgFile = null;
 		if (args.length > 0) {

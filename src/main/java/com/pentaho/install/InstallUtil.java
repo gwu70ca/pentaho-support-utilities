@@ -164,4 +164,8 @@ public class InstallUtil {
         jackrabbitDir = jackrabbitDir.replace('/', File.separatorChar);
         return jackrabbitDir + File.separator + "repository.xml";
     }
+
+    public static String getServerRootDir(InstallParam installParam) throws Exception {
+	    return installParam.installDir + "/server/" + PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType);
+    }
 }

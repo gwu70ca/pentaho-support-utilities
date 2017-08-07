@@ -29,7 +29,15 @@ public class DBParam {
 	public static Map<DB, Integer> DB_USERNAME_LENGTH;
 	public static Map<DB, String> dbDefaultAdminMap;
 
-	static {
+    public static Map<DB, String> dbDirMap;
+
+    static {
+        dbDirMap = new HashMap<>();
+        dbDirMap.put(DB.MySQL, "mysql5");
+        dbDirMap.put(DB.PostgreSQL, "postgresql");
+        dbDirMap.put(DB.Oracle, "oracle10g");
+        dbDirMap.put(DB.MSSQLServer, "sqlserver");
+
 		JDBC_PREFIX = new HashMap<DB, String>();
 		JDBC_PREFIX.put(DB.MySQL, "jdbc:mysql://");
 		JDBC_PREFIX.put(DB.PostgreSQL, "jdbc:postgresql://");
@@ -136,15 +144,15 @@ public class DBParam {
 		this.adminPassword = adminPassword;
 	}
 
-	public String toString() {
-		return "Type: " + this.type + ", host: " + this.host + ", port: " + this.port;
-	}
-
 	public boolean isWinAuth() {
 		return winAuth;
 	}
 
 	public void setWinAuth(boolean winAuth) {
 		this.winAuth = winAuth;
+	}
+
+	public String toString() {
+		return "Type: " + this.type + ", host: " + this.host + ", port: " + this.port;
 	}
 }
