@@ -1,10 +1,11 @@
 package com.pentaho.install.post;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
+import com.pentaho.install.DBInstance;
+import com.pentaho.install.DBParam.DB;
+import com.pentaho.install.InstallUtil;
+import com.pentaho.install.PentahoServerParam.SERVER;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -13,14 +14,11 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.pentaho.install.DBInstance;
-import com.pentaho.install.DBParam.DB;
-import com.pentaho.install.InstallUtil;
-import com.pentaho.install.PentahoServerParam.SERVER;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JackRabbitRepoXMLHelper extends XMLHelper {
 	String DOC_TYPE_STR = "<!DOCTYPE Repository" + System.lineSeparator() +
@@ -378,7 +376,7 @@ public class JackRabbitRepoXMLHelper extends XMLHelper {
 		
 		Element e = doc.createElement("param");
 		e.setAttribute("name", "tablespace");
-		e.setAttribute("value", serverType.equals(SERVER.BA) ? "pentaho_tablespace" : "di_pentaho_tablespace");
+		e.setAttribute("value", InstallUtil.isBA(serverType) ? "pentaho_tablespace" : "di_pentaho_tablespace");
 		return e;
 	}
 	
@@ -417,7 +415,7 @@ public class JackRabbitRepoXMLHelper extends XMLHelper {
 	}
 	
 	private String getJournalClass() {
-		if (serverType.equals(SERVER.BA)) {
+		if (InstallUtil.isBA(serverType)) {
 			return "org.apache.jackrabbit.core.journal.MemoryJournal";
 		} 
 		

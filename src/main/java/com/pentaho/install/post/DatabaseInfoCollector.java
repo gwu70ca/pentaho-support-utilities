@@ -1,24 +1,14 @@
 package com.pentaho.install.post;
 
+import com.pentaho.install.*;
+import com.pentaho.install.DBParam.DB;
+import com.pentaho.install.PentahoServerParam.SERVER;
+import com.pentaho.install.input.*;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
-
-import com.pentaho.install.ActionResult;
-import com.pentaho.install.DBActionResult;
-import com.pentaho.install.DBInstance;
-import com.pentaho.install.DBParam;
-import com.pentaho.install.DBParam.DB;
-import com.pentaho.install.InstallAction;
-import com.pentaho.install.InstallUtil;
-import com.pentaho.install.Logger;
-import com.pentaho.install.PentahoServerParam.SERVER;
-import com.pentaho.install.input.BooleanInput;
-import com.pentaho.install.input.DBNameInput;
-import com.pentaho.install.input.DBUsernameInput;
-import com.pentaho.install.input.IntegerInput;
-import com.pentaho.install.input.StringInput;
 
 /**
  * Collect database parameters and create database if necessary
@@ -30,31 +20,31 @@ public class DatabaseInfoCollector extends InstallAction {
 	static Map<DB, Map<String, String>> dbFileMap;
 	
 	private void init() {
-		String hibernate = serverType.equals(SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI; 
-		String jackrabbit = serverType.equals(SERVER.BA) ? DBParam.DB_NAME_JACKRABBIT : DBParam.DB_NAME_JACKRABBIT_DI;
-		String quartz = serverType.equals(SERVER.BA) ? DBParam.DB_NAME_QUARTZ : DBParam.DB_NAME_QUARTZ_DI;
+		String hibernate = InstallUtil.getHibernateDatabaseName(serverType);
+		String jackrabbit = InstallUtil.getJackrabbitDatabaseName(serverType);
+		String quartz = InstallUtil.getQuartzDatabaseName(serverType);
 		
 		dbFileMap = new HashMap<>();
-		Map<String, String> m = new HashMap<String, String>();
+		Map<String, String> m = new HashMap<>();
 		m.put(hibernate, "create_repository_mysql.sql");
 		m.put(jackrabbit, "create_jcr_mysql.sql");
 		m.put(quartz, "create_quartz_mysql.sql");
 		dbFileMap.put(DB.MySQL, m);
 		
-		m = new HashMap<String, String>();
+		m = new HashMap<>();
 		m.put(hibernate, "create_repository_postgresql.sql");
 		m.put(jackrabbit, "create_jcr_postgresql.sql");
 		m.put(quartz, "create_quartz_postgresql.sql");
 		dbFileMap.put(DB.PostgreSQL, m);
 		
 
-		m = new HashMap<String, String>();
+		m = new HashMap<>();
 		m.put(hibernate, "create_repository_ora.sql");
 		m.put(jackrabbit, "create_jcr_ora.sql");
 		m.put(quartz, "create_quartz_ora.sql");
 		dbFileMap.put(DB.Oracle, m);
 		
-		m = new HashMap<String, String>();
+		m = new HashMap<>();
 		m.put(hibernate, "create_repository_sqlServer.sql");
 		m.put(jackrabbit, "create_jcr_sqlServer.sql");
 		m.put(quartz, "create_quartz_sqlServer.sql");
@@ -68,9 +58,9 @@ public class DatabaseInfoCollector extends InstallAction {
 	private boolean manualCreateDb = true;
 	
 	//Read from CLI
-	Scanner scanner;
+	private Scanner scanner;
 	//Read from property file
-	Properties installProp;
+	private Properties installProp;
 	
 	public DatabaseInfoCollector(Properties installProp, Scanner scanner) {
 		this.installProp = installProp;

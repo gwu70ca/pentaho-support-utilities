@@ -2,7 +2,6 @@ package com.pentaho.install.post;
 
 import com.pentaho.install.*;
 import com.pentaho.install.DBParam.DB;
-import com.pentaho.install.PentahoServerParam.SERVER;
 import com.pentaho.install.action.CopyFileAction;
 import com.pentaho.install.input.BooleanInput;
 import com.pentaho.install.input.FileInput;
@@ -20,24 +19,24 @@ import java.util.Scanner;
 public class ConfigUpdater extends InstallAction {
     private Scanner scanner;
 
-    public static Map<DB, String> quartzMap;
-    public static Map<DB, String> hibernateMap;
-    public static Map<DB, String> auditMap;
+    private static Map<DB, String> quartzMap;
+    private static Map<DB, String> hibernateMap;
+    private static Map<DB, String> auditMap;
 
     static {
-        quartzMap = new HashMap<DB, String>();
+        quartzMap = new HashMap<>();
         quartzMap.put(DB.MySQL, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
         quartzMap.put(DB.PostgreSQL, "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
         quartzMap.put(DB.Oracle, "org.quartz.impl.jdbcjobstore.oracle.OracleDelegate");
         quartzMap.put(DB.MSSQLServer, "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
 
-        hibernateMap = new HashMap<DB, String>();
+        hibernateMap = new HashMap<>();
         hibernateMap.put(DB.MySQL, "mysql5.hibernate.cfg.xml");
         hibernateMap.put(DB.PostgreSQL, "postgresql.hibernate.cfg.xml");
         hibernateMap.put(DB.Oracle, "oracle10g.hibernate.cfg.xml");
         hibernateMap.put(DB.MSSQLServer, "sqlserver.hibernate.cfg.xml");
 
-        auditMap = new HashMap<DB, String>();
+        auditMap = new HashMap<>();
         auditMap.put(DB.MySQL, "mysql5");
         auditMap.put(DB.PostgreSQL, "postgresql");
         auditMap.put(DB.Oracle, "oracle10g");
@@ -55,7 +54,7 @@ public class ConfigUpdater extends InstallAction {
     }
 
     private String prompt() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append(NEW_LINE).append(bar()).append(NEW_LINE);
 
         buf.append("1: Apache Tomcat\n");
@@ -84,10 +83,12 @@ public class ConfigUpdater extends InstallAction {
             } while (true);
         }
 
-        if (installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA)) {
+        if (InstallUtil.isBA(installParam.pentahoServerType)) {
             updateBAServer();
-        } else if (installParam.pentahoServerType.equals(PentahoServerParam.SERVER.DI)) {
+        } else if (InstallUtil.isDI(installParam.pentahoServerType)) {
             updateDIServer();
+        } else if (InstallUtil.isHYBRID(installParam.pentahoServerType)) {
+            updateBAServer();
         }
 
         InstallUtil.output("All files were updated.");
@@ -374,7 +375,7 @@ public class ConfigUpdater extends InstallAction {
         InstallUtil.output("Updating hibernate configuration file " + file.getAbsolutePath());
 
         try {
-            String hibernate = installParam.pentahoServerType.equals(SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI;
+            String hibernate = InstallUtil.getHibernateDatabaseName(installParam.pentahoServerType);
             DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(hibernate);
 
             String JDBC_STR = "<property name=\"connection.url\">";

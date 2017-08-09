@@ -11,8 +11,8 @@ import java.util.Properties;
 import java.util.Scanner;
 
 public class InstallParamCollector {
-    String installCfgFile;
-    Scanner scanner;
+    private String installCfgFile;
+    private Scanner scanner;
 
     public InstallParamCollector(String cfgFile, Scanner scanner) throws Exception {
         this.installCfgFile = cfgFile;
@@ -61,10 +61,6 @@ public class InstallParamCollector {
         if (PostInstaller.SILENT) {
             String dbTypeStr = installProp.getProperty("db_type");
             installParam.dbType = DB.valueOf(dbTypeStr);
-            if (installParam.dbType == null) {
-                InstallUtil.output("Invalid database type:" + dbTypeStr);
-                InstallUtil.exit();
-            }
         } else {
             DatabaseChooser dbc = new DatabaseChooser(scanner);
             ActionResult result = dbc.execute();
@@ -112,7 +108,7 @@ public class InstallParamCollector {
         if (!canReadAndWrite(new File(serverRootDir)) || !canReadAndWrite(new File(serverRootDir + "/data/" + DBParam.dbDirMap.get(installParam.dbType)))) {
             InstallUtil.output("Directory [" + serverRootDir + "] is invalid. Make sure the directory exists and current user has read/write permission.");
         } else {
-            if (InstallUtil.isBA(installParam)) {
+            if (InstallUtil.isBA(installParam.pentahoServerType)) {
                 File analyzerDir = new File(serverRootDir + "/system/analyzer");
                 boolean analyzerDirValid = isValidDir(analyzerDir);
                 if (!analyzerDirValid) {
@@ -138,7 +134,7 @@ public class InstallParamCollector {
                 }
 
                 verified = true;
-            } else if (InstallUtil.isDI(installParam)) {
+            } else if (InstallUtil.isDI(installParam.pentahoServerType) || InstallUtil.isHYBRID(installParam.pentahoServerType)) {
 
                 verified = true;
             }

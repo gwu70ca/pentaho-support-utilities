@@ -20,7 +20,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 public class XMLGenerator {
-    protected boolean createXml(PentahoXMLConfig conf, String file) {
+    protected boolean createXml(PentahoXMLConfig conf, String file, String msg) {
         boolean succeeded = false;
 
         try {
@@ -48,11 +48,11 @@ public class XMLGenerator {
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
             DOMSource source = new DOMSource(doc);
-            StreamResult result = null;
+            StreamResult result;
             if ("true".equals(System.getProperty("local"))) {
                 result = new StreamResult(System.out);
             } else {
-                System.out.print("\nUpdating file " + file);
+                InstallUtil.output("\n" + msg + file);
                 result = new StreamResult(new File(file));
             }
 

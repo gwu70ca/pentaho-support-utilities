@@ -18,6 +18,7 @@ public class DBParam {
 	public static String DB_NAME_HIBERNATE = "hibernate";
 	public static String DB_NAME_JACKRABBIT = "jackrabbit";
 	public static String DB_NAME_QUARTZ = "quartz";
+	public static String DB_NAME_PENT_OP_MART = "pentaho_operations_mart";
 
 	public static String DB_NAME_HIBERNATE_DI = "di_hibernate";
 	public static String DB_NAME_JACKRABBIT_DI = "di_jackrabbit";
@@ -71,15 +72,22 @@ public class DBParam {
 
 	public static Map<String, DBInstance> initDbInstances(SERVER serverType) {
 		Map<String, DBInstance> dbInstanceMap = new LinkedHashMap<>();
-		if (SERVER.BA.equals(serverType)) {
+		if (InstallUtil.isBA(serverType)) {
 			dbInstanceMap.put(DBParam.DB_NAME_HIBERNATE, new DBInstance(DBParam.DB_NAME_HIBERNATE, "hibuser", "password"));
 			dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, "jcr_user", "password"));
 			dbInstanceMap.put(DBParam.DB_NAME_QUARTZ, new DBInstance(DBParam.DB_NAME_QUARTZ, "pentaho_user", "password"));
-		} else if (SERVER.DI.equals(serverType)) {
+            //dbInstanceMap.put(DBParam.DB_NAME_PENT_OP_MART, new DBInstance(DBParam.DB_NAME_PENT_OP_MART, "hibuser", "password"));
+		} else if (InstallUtil.isDI(serverType)) {
 			dbInstanceMap.put(DBParam.DB_NAME_HIBERNATE_DI, new DBInstance(DBParam.DB_NAME_HIBERNATE_DI, "hibuser", "password"));
 			dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT_DI, new DBInstance(DBParam.DB_NAME_JACKRABBIT_DI, "jcr_user", "password"));
 			dbInstanceMap.put(DBParam.DB_NAME_QUARTZ_DI, new DBInstance(DBParam.DB_NAME_QUARTZ_DI, "pentaho_user", "password"));
-		}
+            //dbInstanceMap.put(DBParam.DB_NAME_PENT_OP_MART, new DBInstance(DBParam.DB_NAME_PENT_OP_MART, "hibuser", "password"));
+		} else if (InstallUtil.isHYBRID(serverType)) {
+            dbInstanceMap.put(DBParam.DB_NAME_HIBERNATE, new DBInstance(DBParam.DB_NAME_HIBERNATE, "hibuser", "password"));
+            dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, "jcr_user", "password"));
+            dbInstanceMap.put(DBParam.DB_NAME_QUARTZ, new DBInstance(DBParam.DB_NAME_QUARTZ, "pentaho_user", "password"));
+            //dbInstanceMap.put(DBParam.DB_NAME_PENT_OP_MART, new DBInstance(DBParam.DB_NAME_PENT_OP_MART, "hibuser", "password"));
+        }
 		
 		return dbInstanceMap;
 	}

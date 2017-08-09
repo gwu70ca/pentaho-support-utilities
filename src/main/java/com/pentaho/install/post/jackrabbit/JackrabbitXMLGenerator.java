@@ -22,7 +22,7 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
     private PentahoXMLConfig createRepository() {
         Repository repository = new Repository();
 
-        String jackrabbitDbName = InstallUtil.isBA(installParam) ? DBParam.DB_NAME_JACKRABBIT : DBParam.DB_NAME_JACKRABBIT_DI;
+        String jackrabbitDbName = InstallUtil.getJackrabbitDatabaseName(installParam.pentahoServerType);
         DBInstance jackrabbitInstance = installParam.dbInstanceMap.get(jackrabbitDbName);
         jackrabbitInstance.setType(installParam.dbType);
 
@@ -44,32 +44,28 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         updateDataStore(repository.getDataStore(), url, driver, user, password, databaseType);
         updateWorkspace(repository.getWorkspace(), fileSystemClass, persistenceManagerClass, url, driver, user, password, schema, tablespace, isOracle);
         updateVersioning(repository.getVersioning(), fileSystemClass, persistenceManagerClass, url, driver, user, password, schema, tablespace, isOracle);
-
-        String journalClass = getJournalClass();
-        updateCluster(repository.getCluster(), journalClass, url, driver, user, password, schema);
+        updateCluster(repository.getCluster(), url, driver, user, password, schema);
 
         return repository;
     }
 
-    private void updateCluster(Cluster cluster, String journalClass, Param url, Param driver, Param user, Param password, Param schema) {
+    private void updateCluster(Cluster cluster, Param url, Param driver, Param user, Param password, Param schema) {
         Journal journal = cluster.getJournal();
 
-        if (InstallUtil.isBA(installParam)) {
+        if (InstallUtil.isBA(installParam.pentahoServerType)) {
             return;
-        } else if (InstallUtil.isDI(installParam)) {
+        } else if (InstallUtil.isDI(installParam.pentahoServerType) || InstallUtil.isHYBRID(installParam.pentahoServerType)) {
             journal.setClazz(this.getJournalClass());
             journal.setRevision(new Param("revision", getRevision()));
             journal.setUrl(url);
             journal.setDriver(driver);
-            journal.setUrl(user);
+            journal.setUser(user);
             journal.setPassword(password);
             journal.setSchema(schema);
             journal.setSchemaObjectPrefix(new Param("schemaObjectPrefix", getSchemaObjectPrefix()));
         } else {
-
         }
     }
-
 
     private void updateVersioning(Versioning versioning, String fileSystemClass, String persistenceManageClass, Param url, Param driver, Param user, Param password, Param schema, Param tablespace, boolean isOracle) {
         Param wsSchemaObjectPrefix = new Param("schemaObjectPrefix", "fs_ver_");
@@ -135,7 +131,7 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         try {
             PentahoXMLConfig repository = createRepository();
             String repositoryFile = InstallUtil.getJackrabbitRepositoryFilePath(installParam);
-            success = createXml(repository, repositoryFile);
+            success = createXml(repository, repositoryFile, "Updating Jackrabbit repository configuration file: ");
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
         }
@@ -208,7 +204,7 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         SERVER serverType = installParam.pentahoServerType;
         DB dbType = installParam.dbType;
 
-        if (serverType.equals(SERVER.BA)) {
+        if (InstallUtil.isBA(serverType)) {
             return "org.apache.jackrabbit.core.journal.MemoryJournal";
         }
 
@@ -242,13 +238,12 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         return "";
     }
 
-
     public static void main(String[] args) throws Exception {
         System.setProperty("local", "true");
 
         InstallParam installParam = new InstallParam();
         installParam.dbType = DB.PostgreSQL;
-        installParam.pentahoServerType = SERVER.DI;
+        installParam.pentahoServerType = SERVER.HYBRID;
         Map<String, DBInstance> dbInstanceMap = DBParam.initDbInstances(installParam.pentahoServerType);
         installParam.dbInstanceMap = dbInstanceMap;
 

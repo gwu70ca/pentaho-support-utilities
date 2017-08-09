@@ -1,14 +1,15 @@
 package com.pentaho.install.post.tomcat;
 
-import com.pentaho.install.*;
+import com.pentaho.install.DBInstance;
+import com.pentaho.install.DBParam;
+import com.pentaho.install.InstallParam;
+import com.pentaho.install.InstallUtil;
 import com.pentaho.install.post.XMLGenerator;
 import com.pentaho.install.post.tomcat.conf.server.Connector;
 import com.pentaho.install.post.tomcat.conf.server.Server;
 import com.pentaho.install.post.tomcat.conf.server.Service;
 import com.pentaho.install.post.tomcat.webapps.Context;
 import com.pentaho.install.post.tomcat.webapps.Resource;
-
-import java.util.Map;
 
 public class TomcatXMLGenerator extends XMLGenerator {
     private InstallParam installParam;
@@ -29,24 +30,24 @@ public class TomcatXMLGenerator extends XMLGenerator {
     private TomcatConf createWebappsContext() {
         Context context = new Context();
 
-        String hibernate = installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI;
+        String hibernate = InstallUtil.getHibernateDatabaseName(installParam.pentahoServerType);
         DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(hibernate);
         hibernateDbInstance.setType(installParam.dbType);
         hibernateDbInstance.setResourceName(DBParam.RESOURCE_NAME_HIBERNATE);
         context.setHibernate(createResource(hibernateDbInstance));
 
-        String audit = installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI;
+        String audit = hibernate;
         DBInstance auditDbInstance = installParam.dbInstanceMap.get(audit);
         auditDbInstance.setType(installParam.dbType);
         auditDbInstance.setResourceName(DBParam.RESOURCE_NAME_AUDIT);
         context.setAudit(createResource(auditDbInstance));
 
-        String quartz = installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA) ? DBParam.DB_NAME_QUARTZ : DBParam.DB_NAME_QUARTZ_DI;
+        String quartz = InstallUtil.getQuartzDatabaseName(installParam.pentahoServerType);
         DBInstance quartzDbInstance = installParam.dbInstanceMap.get(quartz);
         quartzDbInstance.setType(installParam.dbType);
         quartzDbInstance.setResourceName(DBParam.RESOURCE_NAME_QUARTZ);
         context.setQuartz(createResource(quartzDbInstance));
-
+/*
         String penOpMart = installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI;
         DBInstance penOpMartDbInstance = installParam.dbInstanceMap.get(penOpMart);
         penOpMartDbInstance.setType(installParam.dbType);
@@ -58,7 +59,7 @@ public class TomcatXMLGenerator extends XMLGenerator {
         pdiOpMartDbInstance.setType(installParam.dbType);
         pdiOpMartDbInstance.setResourceName(DBParam.NAME_PDI_OPERATIONS_MART);
         context.setPdiOpMart(createResource(pdiOpMartDbInstance));
-
+*/
         return context;
     }
 
@@ -77,12 +78,12 @@ public class TomcatXMLGenerator extends XMLGenerator {
         try {
             TomcatConf context = createWebappsContext();
             String ctxFile = InstallUtil.getTomcatContextFilePath(installParam);
-            success = createXml(context, ctxFile);
+            success = createXml(context, ctxFile, "Updating Tomcat context configuration file: ");
 
-            if (InstallUtil.isDI(installParam)) {
+            if (InstallUtil.isDI(installParam.pentahoServerType)) {
                 TomcatConf server = createConfServer();
                 String serverConfFile = InstallUtil.getTomcatServerConfigFilePath(installParam);
-                success = createXml(server, serverConfFile);
+                success = createXml(server, serverConfFile, "Updating Tomcat server configuration file: ");
             }
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
@@ -91,6 +92,7 @@ public class TomcatXMLGenerator extends XMLGenerator {
         return success;
     }
 
+    /*
     public static void main(String[] args) throws Exception {
         System.setProperty("local", "true");
         InstallParam installParam = new InstallParam();
@@ -102,4 +104,5 @@ public class TomcatXMLGenerator extends XMLGenerator {
         TomcatXMLGenerator txg = new TomcatXMLGenerator(installParam);
         txg.createTomcatConfig();
     }
+    */
 }

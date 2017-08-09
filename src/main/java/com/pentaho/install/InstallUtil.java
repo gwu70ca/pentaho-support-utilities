@@ -1,9 +1,10 @@
 package com.pentaho.install;
 
-import com.pentaho.install.DBParam.DB;
-
 import java.io.File;
 import java.util.Scanner;
+
+import static com.pentaho.install.DBParam.DB;
+import static com.pentaho.install.PentahoServerParam.SERVER;
 
 public class InstallUtil {
 	public static boolean isBlankOrNull(String s) {
@@ -63,7 +64,7 @@ public class InstallUtil {
 				}
 			} else {
 				input.setValue(line);
-				String error = null;
+				String error;
 				if ((error = input.validate()) == null) {
 					break;
 				} else {
@@ -132,21 +133,37 @@ public class InstallUtil {
 		return "(&" + searchFilter + String.format(accountFilter, accountName) + ")";
 	}
 
-	public static boolean isBA(InstallParam param) {
-	    return param.pentahoServerType.equals(PentahoServerParam.SERVER.BA);
+	public static boolean isBA(SERVER serverType) {
+		return serverType.equals(SERVER.BA);
     }
 
-    public static boolean isDI(InstallParam param) {
-        return param.pentahoServerType.equals(PentahoServerParam.SERVER.DI);
+    public static boolean isDI(SERVER serverType) {
+        return serverType.equals(SERVER.DI);
     }
 
-    public static boolean isHYBRID(InstallParam param) {
-        return param.pentahoServerType.equals(PentahoServerParam.SERVER.HYBRID);
+    public static boolean isHYBRID(SERVER serverType) {
+        return serverType.equals(SERVER.HYBRID);
+    }
+
+    public static String getHibernateDatabaseName(SERVER serverType) {
+	    return isDI(serverType) ? DBParam.DB_NAME_HIBERNATE_DI : DBParam.DB_NAME_HIBERNATE;
+    }
+
+    public static String getJackrabbitDatabaseName(SERVER serverType) {
+        return isDI(serverType) ? DBParam.DB_NAME_JACKRABBIT_DI : DBParam.DB_NAME_JACKRABBIT;
+    }
+
+    public static String getQuartzDatabaseName(SERVER serverType) {
+        return isDI(serverType) ? DBParam.DB_NAME_QUARTZ_DI : DBParam.DB_NAME_QUARTZ;
+    }
+
+    public static String getWebAppName(SERVER serverType) {
+	    return isDI(serverType) ? "pentaho-di" : "pentaho";
     }
 
     public static String getTomcatContextFilePath(InstallParam installParam) throws Exception {
         String tomcatDir = installParam.installDir + "/server/" + PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType) + "/" + installParam.appServerDir;
-        String appName = InstallUtil.isBA(installParam) ? "pentaho" : "pentaho-di";
+        String appName = !InstallUtil.isDI(installParam.pentahoServerType) ? "pentaho" : "pentaho-di";
         String contextDir = tomcatDir + "/webapps/" + appName + "/META-INF";
         contextDir = contextDir.replace('/', File.separatorChar);
         return contextDir + File.separator + "context.xml";

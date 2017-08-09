@@ -60,7 +60,7 @@ public class TomcatXMLHelper extends XMLHelper {
 		String tomcatDir = installParam.installDir + "/server/" + PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType) + "/" + installParam.appServerDir;
 		
 		try {
-			String appName = installParam.pentahoServerType.equals(SERVER.BA) ? "pentaho" : "pentaho-di";
+			String appName = InstallUtil.getWebAppName(installParam.pentahoServerType);
 			String contextDir = tomcatDir + "/webapps/" + appName + "/META-INF";
 			contextDir = contextDir.replace('/', File.separatorChar);
 			String ctxFile = contextDir + File.separator + "context.xml";
@@ -101,10 +101,10 @@ public class TomcatXMLHelper extends XMLHelper {
 	}
 	
 	private void createContextXml(Document doc) {
-		String hibernate = installParam.pentahoServerType.equals(SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI; 
+		String hibernate = InstallUtil.getHibernateDatabaseName(installParam.pentahoServerType);
 		DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(hibernate);
 		
-		String quartz = installParam.pentahoServerType.equals(SERVER.BA) ? DBParam.DB_NAME_QUARTZ : DBParam.DB_NAME_QUARTZ_DI;
+		String quartz = InstallUtil.getQuartzDatabaseName(installParam.pentahoServerType);
 		DBInstance quartzDbInstance = installParam.dbInstanceMap.get(quartz);
 		
 		String[][][] resources = {

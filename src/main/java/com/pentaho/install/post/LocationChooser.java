@@ -19,7 +19,7 @@ import java.util.Scanner;
  *
  */
 public class LocationChooser extends InstallAction {
-	Scanner scanner;
+	private Scanner scanner;
 	
 	private SERVER serverType;
 	
@@ -48,9 +48,10 @@ public class LocationChooser extends InstallAction {
 		if (serverType.equals(SERVER.DI)) {
 			sourceDir = "pdi-ee";
 			targetDir = "server/data-integration-server";
+		} else if (serverType.equals(SERVER.HYBRID)) {
 		}
 		
-		//if (serverType.equals(SERVER.BA)) {
+		if (InstallUtil.isBA(serverType) || InstallUtil.isDI(serverType)) {
 			File source = new File(dir, sourceDir);
 			File target = new File(dir, targetDir);
 			
@@ -82,8 +83,8 @@ public class LocationChooser extends InstallAction {
 					}
 				}
 			}
-		//}
+		}
 		
-		return new ActionResult(dir);
+		return new ActionResult(dir.getAbsolutePath());
 	}
 }
