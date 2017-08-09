@@ -87,15 +87,19 @@ public class InstallUtil {
 	}
 
 	public static String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
-		String url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/"
-				+ (isAdmin ? "" : dbInstance.getName());
-		DB dbType = dbInstance.getType();
+        DB dbType = dbInstance.getType();
 
+		String url = null;
 		if (dbInstance.getType() == DB.MySQL) {
-			//
+            url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/"
+                    + (isAdmin ? "" : dbInstance.getName());
 		} else if (dbType == DB.MSSQLServer) {
+		    String dbName = dbInstance.getName();
+		    if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)) {
+		        dbName = DBParam.DB_NAME_HIBERNATE;
+            }
 			url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort()
-					+ (isAdmin ? "" : ";DatabaseName=" + dbInstance.getName());
+					+ (isAdmin ? "" : ";DatabaseName=" + dbName);
 		} else if (dbType == DB.Oracle) {
 			url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/XE";
 		} else if (dbType == DB.PostgreSQL) {
@@ -143,22 +147,6 @@ public class InstallUtil {
 
     public static boolean isHYBRID(SERVER serverType) {
         return serverType.equals(SERVER.HYBRID);
-    }
-
-    public static String getHibernateDatabaseName(SERVER serverType) {
-	    return isDI(serverType) ? DBParam.DB_NAME_HIBERNATE_DI : DBParam.DB_NAME_HIBERNATE;
-    }
-
-    public static String getJackrabbitDatabaseName(SERVER serverType) {
-        return isDI(serverType) ? DBParam.DB_NAME_JACKRABBIT_DI : DBParam.DB_NAME_JACKRABBIT;
-    }
-
-    public static String getQuartzDatabaseName(SERVER serverType) {
-        return isDI(serverType) ? DBParam.DB_NAME_QUARTZ_DI : DBParam.DB_NAME_QUARTZ;
-    }
-
-    public static String getWebAppName(SERVER serverType) {
-	    return isDI(serverType) ? "pentaho-di" : "pentaho";
     }
 
     public static String getTomcatContextFilePath(InstallParam installParam) throws Exception {

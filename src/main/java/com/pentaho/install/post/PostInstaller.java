@@ -68,7 +68,7 @@ public class PostInstaller {
 		}
 		
 		InstallParamCollector paramCollector = new InstallParamCollector(this.installCfgFile,scanner);
-		InstallParam installParam = paramCollector.collect();
+		InstallParam installParam = paramCollector.execute();
 		
 		if (!installParam.manualCreateDb) {
 			//User may choose to manually create database

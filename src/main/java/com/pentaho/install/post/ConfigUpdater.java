@@ -99,7 +99,6 @@ public class ConfigUpdater extends InstallAction {
         //update quartz
         if (!updateQuartz()) {
             if (PostInstaller.SILENT) {
-
             } else {
                 BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
                 InstallUtil.ask(scanner, askForContinue);
@@ -152,7 +151,7 @@ public class ConfigUpdater extends InstallAction {
         }
         InstallUtil.output("\t[done]");
 
-        boolean isTomcat = false, isJboss = false;
+        boolean isTomcat, isJboss;
         if (PostInstaller.SILENT) {
             AppServerParam.SERVER appServer = installParam.appServerType;
             isTomcat = appServer.equals(AppServerParam.SERVER.TOMCAT);
@@ -375,8 +374,7 @@ public class ConfigUpdater extends InstallAction {
         InstallUtil.output("Updating hibernate configuration file " + file.getAbsolutePath());
 
         try {
-            String hibernate = InstallUtil.getHibernateDatabaseName(installParam.pentahoServerType);
-            DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(hibernate);
+            DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
 
             String JDBC_STR = "<property name=\"connection.url\">";
             String USERNAME_STR = "<property name=\"connection.username\">";

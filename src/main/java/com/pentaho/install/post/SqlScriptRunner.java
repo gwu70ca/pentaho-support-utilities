@@ -97,7 +97,8 @@ public class SqlScriptRunner {
 		for (String dbName : dbInstanceMap.keySet()) {
 			DBInstance instance = dbInstanceMap.get(dbName);
 			String dbFileName = instance.getDbFileName();
-			
+
+			InstallUtil.output("\n--------------------\n");
 			InstallUtil.output("Creating database " + instance.getName() + ", " + instance.getDefaultUsername() + ", " + instance.getUsername());
 			InstallUtil.output("Script file: " + dbFileName);
 			InstallUtil.output("\n--------------------\n");

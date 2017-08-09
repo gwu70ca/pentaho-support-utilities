@@ -19,7 +19,7 @@ public class InstallParamCollector {
         this.scanner = scanner;
     }
 
-    public InstallParam collect() {
+    public InstallParam execute() {
         Properties installProp = new Properties();
         if (PostInstaller.SILENT) {
             InstallUtil.output("Reading install property file: " + installCfgFile);

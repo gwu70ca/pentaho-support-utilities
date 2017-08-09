@@ -7,8 +7,6 @@ import com.pentaho.install.InstallUtil;
 import com.pentaho.install.post.PentahoXMLConfig;
 import com.pentaho.install.post.XMLGenerator;
 
-import java.util.Map;
-
 import static com.pentaho.install.DBParam.DB;
 import static com.pentaho.install.PentahoServerParam.SERVER;
 
@@ -22,9 +20,10 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
     private PentahoXMLConfig createRepository() {
         Repository repository = new Repository();
 
-        String jackrabbitDbName = InstallUtil.getJackrabbitDatabaseName(installParam.pentahoServerType);
-        DBInstance jackrabbitInstance = installParam.dbInstanceMap.get(jackrabbitDbName);
-        jackrabbitInstance.setType(installParam.dbType);
+        DBInstance jackrabbitInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_JACKRABBIT);
+        if (InstallUtil.isDI(installParam.pentahoServerType)) {
+            jackrabbitInstance.setName(DBParam.DB_NAME_JACKRABBIT_DI);
+        }
 
         boolean isOracle = InstallUtil.isOracle(jackrabbitInstance);
 
@@ -238,6 +237,7 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         return "";
     }
 
+    /*
     public static void main(String[] args) throws Exception {
         System.setProperty("local", "true");
 
@@ -250,4 +250,5 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         JackrabbitXMLGenerator jxg = new JackrabbitXMLGenerator(installParam);
         jxg.createJackrabbitConfig();
     }
+    */
 }

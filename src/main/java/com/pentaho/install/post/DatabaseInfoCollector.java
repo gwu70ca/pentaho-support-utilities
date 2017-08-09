@@ -18,38 +18,36 @@ import java.util.Scanner;
  */
 public class DatabaseInfoCollector extends InstallAction {
 	static Map<DB, Map<String, String>> dbFileMap;
-	
-	private void init() {
-		String hibernate = InstallUtil.getHibernateDatabaseName(serverType);
-		String jackrabbit = InstallUtil.getJackrabbitDatabaseName(serverType);
-		String quartz = InstallUtil.getQuartzDatabaseName(serverType);
-		
+
+	private void initSqlScriptFiles() {
 		dbFileMap = new HashMap<>();
 		Map<String, String> m = new HashMap<>();
-		m.put(hibernate, "create_repository_mysql.sql");
-		m.put(jackrabbit, "create_jcr_mysql.sql");
-		m.put(quartz, "create_quartz_mysql.sql");
+		m.put(DBParam.DB_NAME_HIBERNATE, "create_repository_mysql.sql");
+		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_mysql.sql");
+		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_mysql.sql");
+		m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_mysql.sql");
 		dbFileMap.put(DB.MySQL, m);
-		
-		m = new HashMap<>();
-		m.put(hibernate, "create_repository_postgresql.sql");
-		m.put(jackrabbit, "create_jcr_postgresql.sql");
-		m.put(quartz, "create_quartz_postgresql.sql");
-		dbFileMap.put(DB.PostgreSQL, m);
-		
 
 		m = new HashMap<>();
-		m.put(hibernate, "create_repository_ora.sql");
-		m.put(jackrabbit, "create_jcr_ora.sql");
-		m.put(quartz, "create_quartz_ora.sql");
-		dbFileMap.put(DB.Oracle, m);
-		
+		m.put(DBParam.DB_NAME_HIBERNATE, "create_repository_postgresql.sql");
+		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_postgresql.sql");
+		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_postgresql.sql");
+        m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_postgresql.sql");
+		dbFileMap.put(DB.PostgreSQL, m);
+
 		m = new HashMap<>();
-		m.put(hibernate, "create_repository_sqlServer.sql");
-		m.put(jackrabbit, "create_jcr_sqlServer.sql");
-		m.put(quartz, "create_quartz_sqlServer.sql");
-		
-		dbFileMap.put(DB.MSSQLServer, m);		
+		m.put(DBParam.DB_NAME_HIBERNATE, "create_repository_ora.sql");
+		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_ora.sql");
+		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_ora.sql");
+        m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_oracle.sql");
+		dbFileMap.put(DB.Oracle, m);
+
+		m = new HashMap<>();
+		m.put(DBParam.DB_NAME_HIBERNATE, "create_repository_sqlServer.sql");
+		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_sqlServer.sql");
+		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_sqlServer.sql");
+        m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_sqlserver.sql");
+		dbFileMap.put(DB.MSSQLServer, m);
 	}
 
 	private DB dbType;
@@ -73,12 +71,12 @@ public class DatabaseInfoCollector extends InstallAction {
 
 	public void setServerType(SERVER serverType) {
 		this.serverType = serverType;
-		
-		dbInstanceMap = DBParam.initDbInstances(serverType);
-		init();
 	}
 
 	public ActionResult execute() {
+        dbInstanceMap = DBParam.initDbInstances(serverType, dbType);
+        initSqlScriptFiles();
+
 		if (PostInstaller.SILENT) {
 			readFromFile();
 		} else {
@@ -136,7 +134,7 @@ public class DatabaseInfoCollector extends InstallAction {
 			String name = this.installProp.getProperty(String.format(dbNameStr, dbName));
 			String user = this.installProp.getProperty(String.format(dbUserStr, dbName));
 			String pass = this.installProp.getProperty(String.format(dbPassStr, dbName));
-			Logger.log("\tpropery name: " + name + ", user: " + user + ", pass: " + pass);
+			Logger.log("\tproperty name: " + name + ", user: " + user + ", pass: " + pass);
 			
 			boolean dbSettingChanged = !(name.equals(dbInstance.getName()) &&
 					user.equals(dbInstance.getUsername()) &&
@@ -188,12 +186,8 @@ public class DatabaseInfoCollector extends InstallAction {
 		dbParam.setPort(dbPortInput.getValue());
 		
 		InstallUtil.newLine();
-		
-		String dbNames = DBParam.DB_NAME_HIBERNATE + ", " + DBParam.DB_NAME_JACKRABBIT + ", " + DBParam.DB_NAME_QUARTZ;
-		if (serverType.equals(SERVER.DI)) {
-			dbNames = DBParam.DB_NAME_HIBERNATE_DI + ", " + DBParam.DB_NAME_JACKRABBIT_DI + ", " + DBParam.DB_NAME_QUARTZ_DI;
-		}
-		BooleanInput createDbInput = new BooleanInput("Pentaho server requires the following databases to operate: [" + dbNames + "]. Do you want installer to create them for you [y/n]? ");
+
+		BooleanInput createDbInput = new BooleanInput("Pentaho server requires the following databases to operate: " + dbInstanceMap.keySet() + ". Do you want installer to create them for you [y/n]? ");
 		InstallUtil.ask(scanner, createDbInput);
 		
 		if (createDbInput.yes()) {
@@ -243,7 +237,6 @@ public class DatabaseInfoCollector extends InstallAction {
 				String dbFileName = fileMap.get(dbName);
 				dbInstance.setDbFileName(dbFileName);
 				
-				dbInstance.setType(dbParam.getType());
 				dbInstance.setHost(dbParam.getHost());
 				dbInstance.setPort(dbParam.getPort());
 				dbInstance.setAdminUser(dbParam.getAdminUser());
@@ -251,7 +244,7 @@ public class DatabaseInfoCollector extends InstallAction {
 				
 				if (customDb) {
 					InstallUtil.newLine();
-					
+
 					if (!DB.Oracle.equals(dbType)) {
 						//Oracle does not need db name
 						DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), dbParam.getType());
@@ -260,27 +253,36 @@ public class DatabaseInfoCollector extends InstallAction {
 						
 						dbName = dbNameInput.getValue();
 					} else {
-						if (DBParam.DB_NAME_QUARTZ.equals(dbInstance.getName())) {
-							dbInstance.setDefaultUsername("quartz");
-						} else if (DBParam.DB_NAME_QUARTZ_DI.equals(dbInstance.getName())) {
-							dbInstance.setDefaultUsername("di_quartz");
-						}
+					    if (InstallUtil.isDI(serverType)) {
+                            dbInstance.setDefaultUsername("di_quartz");
+                        }
 					}
-					
-					DBUsernameInput dbUsernameInput = new DBUsernameInput(String.format("Input username for [%s]: ", dbName), dbType);
-					InstallUtil.ask(scanner, dbUsernameInput);
-					
-					StringInput dbPasswordInput = new StringInput(String.format("Input password for [%s]: ", dbName));
-					InstallUtil.ask(scanner, dbPasswordInput);
 
+                    String dbUsername, dbPassword;
+                    if (DBParam.DB_NAME_PENT_OP_MART.equals(dbInstance.getDefaultName())) {
+                        //Pentaho operations mart uses same credentials as hibernate
+                        DBInstance hibernateInstance = dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
+                        dbUsername = hibernateInstance.getUsername();
+                        dbPassword = hibernateInstance.getPassword();
+                        InstallUtil.output("This database uses same username/password as database [hibernate]");
+                    } else {
+                        DBUsernameInput dbUsernameInput = new DBUsernameInput(String.format("Input username for [%s]: ", dbName), dbType);
+                        InstallUtil.ask(scanner, dbUsernameInput);
+                        dbUsername = dbUsernameInput.getValue();
+
+                        StringInput dbPasswordInput = new StringInput(String.format("Input password for [%s]: ", dbName));
+                        InstallUtil.ask(scanner, dbPasswordInput);
+                        dbPassword = dbPasswordInput.getValue();
+                    }
+					
 					boolean dbSettingChanged = !(dbName.equals(dbInstance.getName()) &&
-							dbUsernameInput.getValue().equals(dbInstance.getUsername()) &&
-							dbPasswordInput.getValue().equals(dbInstance.getPassword()));
+							dbUsername.equals(dbInstance.getUsername()) &&
+							dbPassword.equals(dbInstance.getPassword()));
 					
 					if (dbSettingChanged) {
 						dbInstance.setName(dbName);
-						dbInstance.setUsername(dbUsernameInput.getValue());
-						dbInstance.setPassword(dbPasswordInput.getValue());
+						dbInstance.setUsername(dbUsername);
+						dbInstance.setPassword(dbPassword);
 						dbInstance.setCustomed(true);	
 					}	
 				}

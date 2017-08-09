@@ -30,30 +30,28 @@ public class TomcatXMLGenerator extends XMLGenerator {
     private TomcatConf createWebappsContext() {
         Context context = new Context();
 
-        String hibernate = InstallUtil.getHibernateDatabaseName(installParam.pentahoServerType);
-        DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(hibernate);
-        hibernateDbInstance.setType(installParam.dbType);
-        hibernateDbInstance.setResourceName(DBParam.RESOURCE_NAME_HIBERNATE);
+        DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
+        if (InstallUtil.isDI(installParam.pentahoServerType)) {
+            hibernateDbInstance.setName(DBParam.DB_NAME_HIBERNATE_DI);
+        }
         context.setHibernate(createResource(hibernateDbInstance));
 
-        String audit = hibernate;
-        DBInstance auditDbInstance = installParam.dbInstanceMap.get(audit);
-        auditDbInstance.setType(installParam.dbType);
-        auditDbInstance.setResourceName(DBParam.RESOURCE_NAME_AUDIT);
+        DBInstance auditDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
+        if (InstallUtil.isDI(installParam.pentahoServerType)) {
+            auditDbInstance.setName(DBParam.DB_NAME_HIBERNATE_DI);
+        }
         context.setAudit(createResource(auditDbInstance));
 
-        String quartz = InstallUtil.getQuartzDatabaseName(installParam.pentahoServerType);
-        DBInstance quartzDbInstance = installParam.dbInstanceMap.get(quartz);
-        quartzDbInstance.setType(installParam.dbType);
-        quartzDbInstance.setResourceName(DBParam.RESOURCE_NAME_QUARTZ);
+        DBInstance quartzDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_QUARTZ);
+        if (InstallUtil.isDI(installParam.pentahoServerType)) {
+            quartzDbInstance.setName(DBParam.DB_NAME_QUARTZ_DI);
+        }
         context.setQuartz(createResource(quartzDbInstance));
-/*
-        String penOpMart = installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI;
-        DBInstance penOpMartDbInstance = installParam.dbInstanceMap.get(penOpMart);
-        penOpMartDbInstance.setType(installParam.dbType);
-        penOpMartDbInstance.setResourceName(DBParam.NAME_PENTAHO_OPERATIONS_MART);
+
+        DBInstance penOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PENT_OP_MART);
         context.setPentahoOpMart(createResource(penOpMartDbInstance));
 
+        /*
         String pdiOpMart = installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI;
         DBInstance pdiOpMartDbInstance = installParam.dbInstanceMap.get(pdiOpMart);
         pdiOpMartDbInstance.setType(installParam.dbType);

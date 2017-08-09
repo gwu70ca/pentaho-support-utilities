@@ -17,16 +17,16 @@ public class DBInstance extends DBParam {
         this.password = this.defaultPassword = password;
     }
 
-    /*public DBInstance(String name, String username, String password, String adminUser, String adminPassword, DBParam.DB type, boolean custom) {
+    public DBInstance(String name, String username, String password, DB dbType, String resourceName) {
         this.name = this.defaultName = name;
         this.username = this.defaultUsername = username;
         this.password = this.defaultPassword = password;
+        this.type = dbType;
+        this.resourceName = resourceName;
 
-        this.setAdminUser(adminUser);
-        this.setAdminPassword(adminPassword);
-        this.setType(type);
-        this.customed = custom;
-    }*/
+        initDbProperty();
+    }
+
     public String getDbFileName() {
         return dbFileName;
     }
