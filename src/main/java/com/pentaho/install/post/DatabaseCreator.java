@@ -16,10 +16,8 @@ public class DatabaseCreator {
 
 	public ActionResult execute() throws Exception {
 		String serverDirName = PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType);
-		Logger.log("Pentaho server: " + installParam.pentahoServerType + ", " + serverDirName);
-		
+
 		File dbFileDir = new File(installParam.installDir, "server/" + serverDirName + "/data/" + DBParam.dbDirMap.get(installParam.dbType));
-		
 		SqlScriptRunner runner = new SqlScriptRunner(scanner, dbFileDir, installParam.dbInstanceMap);
 		runner.execute();
 		

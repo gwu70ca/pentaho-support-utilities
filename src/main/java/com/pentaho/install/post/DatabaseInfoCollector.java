@@ -247,13 +247,17 @@ public class DatabaseInfoCollector extends InstallAction {
 
 					if (!DB.Oracle.equals(dbType)) {
 						//Oracle does not need db name
-						DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), dbParam.getType());
-						dbNameInput.setDefaultValue(dbInstance.getName());
-						InstallUtil.ask(scanner, dbNameInput);
-						
-						dbName = dbNameInput.getValue();
+
+                        if (!dbName.equals(DBParam.DB_NAME_PENT_OP_MART)) {
+                            //no need to change pentaho_operations_mart's name
+                            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), dbParam.getType());
+                            dbNameInput.setDefaultValue(dbInstance.getName());
+                            InstallUtil.ask(scanner, dbNameInput);
+
+                            dbName = dbNameInput.getValue();
+                        }
 					} else {
-					    if (InstallUtil.isDI(serverType)) {
+					    if (InstallUtil.isDI(serverType) && DBParam.DB_NAME_QUARTZ.equals(dbName)) {
                             dbInstance.setDefaultUsername("di_quartz");
                         }
 					}
@@ -275,16 +279,16 @@ public class DatabaseInfoCollector extends InstallAction {
                         dbPassword = dbPasswordInput.getValue();
                     }
 					
-					boolean dbSettingChanged = !(dbName.equals(dbInstance.getName()) &&
+					/*boolean dbSettingChanged = !(dbName.equals(dbInstance.getName()) &&
 							dbUsername.equals(dbInstance.getUsername()) &&
 							dbPassword.equals(dbInstance.getPassword()));
-					
-					if (dbSettingChanged) {
+					*/
+					//if (dbSettingChanged) {
 						dbInstance.setName(dbName);
 						dbInstance.setUsername(dbUsername);
 						dbInstance.setPassword(dbPassword);
 						dbInstance.setCustomed(true);	
-					}	
+					//}
 				}
 				
 				Logger.log("");
