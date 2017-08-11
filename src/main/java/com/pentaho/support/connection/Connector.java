@@ -1,10 +1,5 @@
 package com.pentaho.support.connection;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.util.Scanner;
-
 import com.pentaho.install.DBInstance;
 import com.pentaho.install.DBParam;
 import com.pentaho.install.DBParam.DB;
@@ -12,6 +7,8 @@ import com.pentaho.install.InstallUtil;
 import com.pentaho.install.LDAPParam;
 import com.pentaho.install.LDAPParam.LDAP;
 import com.pentaho.install.input.*;
+
+import java.util.Scanner;
 
 public class Connector {
 	static String EXIT = "0";
@@ -96,7 +93,7 @@ public class Connector {
 		dbParam.setType(dbType);
 
 		boolean winAuth = false;
-		if (DB.MSSQLServer.equals(dbType)) {
+		if (DB.Sqlserver.equals(dbType)) {
 			BooleanInput wiaInput = new BooleanInput("Do you want to use Microsoft Windows Integration Authentication [y/n]? ");
 			InstallUtil.ask(scanner, wiaInput);
 			winAuth = wiaInput.yes();
@@ -124,7 +121,7 @@ public class Connector {
 			dbParam.setPassword(passwordInput.getValue());
 		}
 
-		if (!dbType.equals(DB.Oracle)) {
+		if (!dbType.equals(DB.Orcl)) {
 			DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dbParam.getType());
 			dbNameInput.setDefaultValue("");
 			InstallUtil.ask(scanner, dbNameInput);

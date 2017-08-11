@@ -4,6 +4,7 @@ import com.pentaho.install.DBInstance;
 import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallParam;
 import com.pentaho.install.InstallUtil;
+import com.pentaho.install.db.Dialect;
 import com.pentaho.install.post.XMLGenerator;
 import com.pentaho.install.post.tomcat.conf.server.Connector;
 import com.pentaho.install.post.tomcat.conf.server.Server;
@@ -34,22 +35,24 @@ public class TomcatXMLGenerator extends XMLGenerator {
         if (InstallUtil.isDI(installParam.pentahoServerType)) {
             hibernateDbInstance.setName(DBParam.DB_NAME_HIBERNATE_DI);
         }
-        context.setHibernate(createResource(hibernateDbInstance));
 
         DBInstance auditDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
         if (InstallUtil.isDI(installParam.pentahoServerType)) {
             auditDbInstance.setName(DBParam.DB_NAME_HIBERNATE_DI);
         }
-        context.setAudit(createResource(auditDbInstance));
 
         DBInstance quartzDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_QUARTZ);
         if (InstallUtil.isDI(installParam.pentahoServerType)) {
             quartzDbInstance.setName(DBParam.DB_NAME_QUARTZ_DI);
         }
-        context.setQuartz(createResource(quartzDbInstance));
-
         DBInstance penOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PENT_OP_MART);
-        context.setPentahoOpMart(createResource(penOpMartDbInstance));
+
+        Dialect dialect = InstallUtil.createDialect(hibernateDbInstance);
+
+        context.setHibernate(createResource(hibernateDbInstance,dialect));
+        context.setAudit(createResource(auditDbInstance,dialect));
+        context.setQuartz(createResource(quartzDbInstance,dialect));
+        context.setPentahoOpMart(createResource(penOpMartDbInstance,dialect));
 
         /*
         String pdiOpMart = installParam.pentahoServerType.equals(PentahoServerParam.SERVER.BA) ? DBParam.DB_NAME_HIBERNATE : DBParam.DB_NAME_HIBERNATE_DI;
@@ -61,12 +64,13 @@ public class TomcatXMLGenerator extends XMLGenerator {
         return context;
     }
 
-    private Resource createResource(DBInstance db) {
+    private Resource createResource(DBInstance db, Dialect dialect) {
         return new Resource(
-                InstallUtil.getJdbcDriverClass(db.getType()),
+                //InstallUtil.getJdbcDriverClass(db.getType()),
+                dialect.getJdbcDriverClass(),
                 db.getResourceName(),
                 db.getPassword(),
-                InstallUtil.getJdbcUrl(db),
+                dialect.getJdbcUrl(db, false),
                 db.getUsername(),
                 DBParam.getValidationQuery(db.getType()));
     }
@@ -94,7 +98,7 @@ public class TomcatXMLGenerator extends XMLGenerator {
     public static void main(String[] args) throws Exception {
         System.setProperty("local", "true");
         InstallParam installParam = new InstallParam();
-        installParam.dbType = DBParam.DB.PostgreSQL;
+        installParam.dbType = DBParam.DB.Psql;
         installParam.pentahoServerType = PentahoServerParam.SERVER.BA;
         Map<String, DBInstance> dbInstanceMap = DBParam.initDbInstances(PentahoServerParam.SERVER.BA);
         installParam.dbInstanceMap = dbInstanceMap;

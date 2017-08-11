@@ -2,9 +2,9 @@ package com.pentaho.install.post;
 
 import com.pentaho.install.DBInstance;
 import com.pentaho.install.DBParam;
-import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.Logger;
+import com.pentaho.install.db.Dialect;
 import com.pentaho.install.input.BooleanInput;
 
 import java.io.BufferedReader;
@@ -20,15 +20,9 @@ import java.util.*;
 public class SqlScriptRunner {
     public static boolean DRYRUN = false;
 
-    public static String POSTGRESQL_CONNECT_COMMAND_L = "\\connect";
-    public static String POSTGRESQL_CONNECT_COMMAND_S = "\\c";
-    public static String ORACLE_CONNECT_COMMAND = "conn";
-
     Scanner scanner;
     File dir;
     Map<String, DBInstance> dbInstanceMap;
-
-    private boolean enableMySQLRemoteAccess = true;
 
     public SqlScriptRunner(Scanner scanner, File dir, Map<String, DBInstance> dbInstanceMap) {
         this.scanner = scanner;
@@ -39,6 +33,7 @@ public class SqlScriptRunner {
     public void execute() {
         //Get first instance
         DBInstance instance = dbInstanceMap.get(dbInstanceMap.keySet().iterator().next());
+        Dialect dialect = InstallUtil.createDialect(instance);
 
         Properties connectionProps = new Properties();
         connectionProps.put("user", instance.getAdminUser());
@@ -49,7 +44,7 @@ public class SqlScriptRunner {
         try {
             System.out.print("Connecting to " + instance.getHost() + "@" + instance.getPort() + " ..... ");
 
-            String url = InstallUtil.getJdbcUrl(instance, true);
+            String url = dialect.getJdbcUrl(instance, true);
             Logger.log(url);
 
             if (!DRYRUN) {
@@ -60,7 +55,7 @@ public class SqlScriptRunner {
             if (!DRYRUN) {
                 stmt = conn.createStatement();
             }
-            runScript(stmt);
+            runScript(stmt, dialect);
         } catch (SQLException sqle) {
             String message = sqle.getMessage();
             if (PostInstaller.DEBUG) {
@@ -79,22 +74,7 @@ public class SqlScriptRunner {
         }
     }
 
-    private boolean isConnect(String sql, DB type) {
-        return DB.Oracle.equals(type) && sql.startsWith(ORACLE_CONNECT_COMMAND)
-                || DB.PostgreSQL.equals(type) && sql.startsWith(POSTGRESQL_CONNECT_COMMAND_L);
-    }
-
-    private boolean canBeIgnored(String sql, DB type) {
-        return DB.Oracle.equals(type) && sql.startsWith("set")
-                || DB.MSSQLServer.equals(type) && sql.equalsIgnoreCase("go");
-    }
-
-    public boolean isCompletedSql(String sql, DB type) {
-        return sql.endsWith(";") ||
-                DB.MSSQLServer.equals(type) && (sql.startsWith("create database") || sql.startsWith("drop database"));
-    }
-
-    private void runScript(Statement stmt) {
+    private void runScript(Statement stmt, Dialect dialect) {
         for (String dbName : dbInstanceMap.keySet()) {
             DBInstance instance = dbInstanceMap.get(dbName);
             String dbFileName = instance.getDbFileName();
@@ -127,21 +107,21 @@ public class SqlScriptRunner {
                     }
 
                     String lineLower = line.toLowerCase();
-                    if (isConnect(lineLower, instance.getType())) {
+                    if (dialect.isConnect(lineLower)) {
                         //native psql/sqlplus command does not end with ;
                         buf.append(line);
-                    } else if (canBeIgnored(lineLower, instance.getType())) {
+                    } else if (dialect.canBeIgnored(lineLower)) {
                         //anything before this line should be added
                     } else {
                         buf.append(line);
-                        if (!isCompletedSql(line.toLowerCase(), instance.getType())) {
+                        if (!dialect.isCompletedSql(line.toLowerCase())) {
                             buf.append("\n");
                             continue;
                         }
                     }
 
                     if (buf.length() != 0) {
-                        String sql = polish(buf.toString(), instance);
+                        String sql = dialect.polish(buf.toString(), instance, dbInstanceMap);
                         sqlList.add(sql);
                         buf.delete(0, buf.length());
                     }
@@ -165,8 +145,7 @@ public class SqlScriptRunner {
                                     newStatement.execute(sql);
                                 }
                             } else {
-                                String sqlLower = sql.toLowerCase();
-                                if (isConnect(sqlLower, instance.getType())) {
+                                if (dialect.isConnect(sql.toLowerCase())) {
                                     //a native psql/sqlplus client command.
                                     Logger.log("A psql/sqlplus native command encountered, create separate JDBC connection");
 
@@ -180,9 +159,9 @@ public class SqlScriptRunner {
                                             String url;
                                             if (DBParam.DB_NAME_PENT_OP_MART.equals(instance.getName())) {
                                                 DBInstance hibernate = dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
-                                                url = InstallUtil.getJdbcUrl(hibernate, false);
+                                                url = dialect.getJdbcUrl(hibernate, false);
                                             } else {
-                                                url = InstallUtil.getJdbcUrl(instance, false);
+                                                url = dialect.getJdbcUrl(instance, false);
                                             }
                                             Logger.log("Connecting to " + url + ", user: " + instance.getUsername());
 
@@ -233,50 +212,6 @@ public class SqlScriptRunner {
         }
     }
 
-    //TODO ask if enable remote access for mysql
-    private String polish(String sql, DBInstance instance) {
-        if (PostInstaller.DEBUG) {
-        }
-
-        if (DB.MySQL.equals(instance.getType())) {
-            sql = sql.replace(instance.getDefaultName(), instance.getName())
-                    .replace(instance.getDefaultUsername(), instance.getUsername())
-                    .replace(instance.getDefaultPassword(), instance.getPassword());
-
-            sql = sql.replace("'localhost'", "'" + mySQLHostToGrant() + "'");
-        } else if (DB.PostgreSQL.equals(instance.getType())) {
-            if (DBParam.DB_NAME_PENT_OP_MART.equals(instance.getDefaultName())) {
-                DBInstance hibernate = dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
-                sql = sql.replace(DBParam.DB_NAME_HIBERNATE, hibernate.getName())
-                        .replace(instance.getDefaultUsername(), hibernate.getUsername())
-                        .replace(instance.getDefaultPassword(), hibernate.getPassword());
-            } else {
-                sql = sql.replace(instance.getDefaultName(), instance.getName())
-                        .replace(instance.getDefaultUsername(), instance.getUsername())
-                        .replace(instance.getDefaultPassword(), instance.getPassword());
-            }
-        } else if (DB.MSSQLServer.equals(instance.getType())) {
-            String defaultDbName = instance.getDefaultName().equals(DBParam.DB_NAME_PENT_OP_MART) ? DBParam.DB_NAME_HIBERNATE : instance.getDefaultName();
-            sql = sql.replace(defaultDbName, instance.getName())
-                    .replace(instance.getDefaultUsername(), instance.getUsername())
-                    .replace(instance.getDefaultPassword(), instance.getPassword());
-        } else if (DB.Oracle.equals(instance.getType())) {
-            //Oracle does not need to change db name
-            sql = sql
-                    .replace(instance.getDefaultUsername(), instance.getUsername())
-                    .replace(instance.getDefaultPassword(), instance.getPassword());
-            if (sql.endsWith(";")) {
-                sql = sql.substring(0, sql.length() - 1);
-            }
-        }
-
-        return sql;
-    }
-
-    private String mySQLHostToGrant() {
-        return enableMySQLRemoteAccess ? "%" : "localhost";
-    }
-
     private void close(Connection conn) {
         try {
             if (conn != null) {
@@ -299,22 +234,22 @@ public class SqlScriptRunner {
 
     public static void main(String[] args) throws Exception {
         /*
-		Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
 		File dir = new File("C:\\PENTAHO61\\server\\biserver-ee\\data\\postgresql");
 		
-		DBInstance hibernate = new DBInstance(DB_NAME_HIBERNATE, "hibuser", "pentaho", "postgres", "postgres", PostgreSQL, true);
+		DBInstance hibernate = new DBInstance(DB_NAME_HIBERNATE, "hibuser", "pentaho", "postgres", "postgres", Psql, true);
 		hibernate.setName("win_" + DB_NAME_HIBERNATE);
 		hibernate.setUsername("win_" + "hibuser");
 		hibernate.setPassword("pentaho");
 		hibernate.setDbFileName("create_repository_postgresql.sql");
 		
-		DBInstance jackrabbit = new DBInstance(DB_NAME_JACKRABBIT, "jcr_user", "pentaho", "postgres", "postgres", PostgreSQL, true);
+		DBInstance jackrabbit = new DBInstance(DB_NAME_JACKRABBIT, "jcr_user", "pentaho", "postgres", "postgres", Psql, true);
 		jackrabbit.setName("win_" + DB_NAME_JACKRABBIT);
 		jackrabbit.setUsername("win_" + "jcr_user");
 		jackrabbit.setPassword("pentaho");
 		jackrabbit.setDbFileName("create_jcr_postgresql.sql");
 		
-		DBInstance quartz = new DBInstance(DB_NAME_QUARTZ, "pentaho_user", "pentaho", "postgres", "postgres", PostgreSQL, true); 
+		DBInstance quartz = new DBInstance(DB_NAME_QUARTZ, "pentaho_user", "pentaho", "postgres", "postgres", Psql, true);
 		quartz.setName("win_" + DB_NAME_QUARTZ);
 		quartz.setUsername("win_" + "pentaho_user");
 		quartz.setPassword("pentaho");

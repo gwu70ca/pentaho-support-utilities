@@ -1,15 +1,12 @@
 package com.pentaho.support.connection;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Properties;
-
 import com.pentaho.install.DBInstance;
 import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
+import com.pentaho.install.db.Dialect;
+
+import java.sql.*;
+import java.util.Properties;
 
 public class JDBCConnector {
 	static boolean DEBUG = false;
@@ -72,13 +69,13 @@ public class JDBCConnector {
 	private static DBParam.DB guessDbType(String typeString) {
 		String str = typeString.toLowerCase(); 
 		if (str.contains("mssql") || str.contains("sqlserver") || str.contains("mssqlserver") || str.contains("microsoft")) {
-			return DBParam.DB.MSSQLServer;
+			return DBParam.DB.Sqlserver;
 		} else if (str.contains("postgre") || str.contains("psql")) {
-			return DBParam.DB.PostgreSQL;
+			return DBParam.DB.Psql;
 		} else if (str.contains("orcl") || str.contains("oracle")) {
-			return DBParam.DB.Oracle;
+			return DBParam.DB.Orcl;
 		} else if (str.contains("mysql")) {
-			return DBParam.DB.MySQL;
+			return DBParam.DB.Mysql;
 		}
 		return DBParam.DB.valueOf(str);
 	}
@@ -88,9 +85,10 @@ public class JDBCConnector {
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
-			String url = InstallUtil.getJdbcUrl(dbInstance, dbInstance.getName()==null || dbInstance.getName().length()==0);
+			Dialect dialect = InstallUtil.createDialect(dbInstance);
+			String url = dialect.getJdbcUrl(dbInstance, dbInstance.getName()==null || dbInstance.getName().length()==0);
 			Properties connectionProps = new Properties();
-			if (dbInstance.isWinAuth() && DBParam.DB.MSSQLServer.equals(dbInstance.getType())) {
+			if (dbInstance.isWinAuth() && DBParam.DB.Sqlserver.equals(dbInstance.getType())) {
 			    url += ";integratedSecurity=true";
 			} else {
 				connectionProps.put("user", dbInstance.getUsername());
@@ -116,7 +114,7 @@ public class JDBCConnector {
 				success = (rs.getInt(1) != 0);
 			}
 
-			System.out.println(success ? "[successed]" : "[failed]");
+			System.out.println(success ? "[succeeded]" : "[failed]");
 		} catch (SQLException sqle) {
 			String message = sqle.getMessage();
 			if (message.indexOf("No suitable driver") >= 0) {

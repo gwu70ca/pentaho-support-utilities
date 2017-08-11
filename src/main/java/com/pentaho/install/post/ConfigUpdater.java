@@ -3,6 +3,7 @@ package com.pentaho.install.post;
 import com.pentaho.install.*;
 import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.action.CopyFileAction;
+import com.pentaho.install.db.Dialect;
 import com.pentaho.install.input.BooleanInput;
 import com.pentaho.install.input.FileInput;
 import com.pentaho.install.input.SelectInput;
@@ -25,22 +26,22 @@ public class ConfigUpdater extends InstallAction {
 
     static {
         quartzMap = new HashMap<>();
-        quartzMap.put(DB.MySQL, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        quartzMap.put(DB.PostgreSQL, "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate");
-        quartzMap.put(DB.Oracle, "org.quartz.impl.jdbcjobstore.oracle.OracleDelegate");
-        quartzMap.put(DB.MSSQLServer, "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
+        quartzMap.put(DB.Mysql, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
+        quartzMap.put(DB.Psql, "org.quartz.impl.jdbcjobstore.PsqlDelegate");
+        quartzMap.put(DB.Orcl, "org.quartz.impl.jdbcjobstore.oracle.OrclDelegate");
+        quartzMap.put(DB.Sqlserver, "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
 
         hibernateMap = new HashMap<>();
-        hibernateMap.put(DB.MySQL, "mysql5.hibernate.cfg.xml");
-        hibernateMap.put(DB.PostgreSQL, "postgresql.hibernate.cfg.xml");
-        hibernateMap.put(DB.Oracle, "oracle10g.hibernate.cfg.xml");
-        hibernateMap.put(DB.MSSQLServer, "sqlserver.hibernate.cfg.xml");
+        hibernateMap.put(DB.Mysql, "mysql5.hibernate.cfg.xml");
+        hibernateMap.put(DB.Psql, "postgresql.hibernate.cfg.xml");
+        hibernateMap.put(DB.Orcl, "oracle10g.hibernate.cfg.xml");
+        hibernateMap.put(DB.Sqlserver, "sqlserver.hibernate.cfg.xml");
 
         auditMap = new HashMap<>();
-        auditMap.put(DB.MySQL, "mysql5");
-        auditMap.put(DB.PostgreSQL, "postgresql");
-        auditMap.put(DB.Oracle, "oracle10g");
-        auditMap.put(DB.MSSQLServer, "sqlserver");
+        auditMap.put(DB.Mysql, "mysql5");
+        auditMap.put(DB.Psql, "postgresql");
+        auditMap.put(DB.Orcl, "oracle10g");
+        auditMap.put(DB.Sqlserver, "sqlserver");
     }
 
     InstallParam installParam;
@@ -112,7 +113,6 @@ public class ConfigUpdater extends InstallAction {
         //update hibernate
         if (!updateHibernate()) {
             if (PostInstaller.SILENT) {
-
             } else {
                 BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
                 InstallUtil.ask(scanner, askForContinue);
@@ -126,7 +126,6 @@ public class ConfigUpdater extends InstallAction {
         //update jackrabbit
         if (!updateJackrabbit()) {
             if (PostInstaller.SILENT) {
-
             } else {
                 BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
                 InstallUtil.ask(scanner, askForContinue);
@@ -375,6 +374,7 @@ public class ConfigUpdater extends InstallAction {
 
         try {
             DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
+            Dialect dialect = InstallUtil.createDialect(hibernateDbInstance);
 
             String JDBC_STR = "<property name=\"connection.url\">";
             String USERNAME_STR = "<property name=\"connection.username\">";
@@ -385,7 +385,7 @@ public class ConfigUpdater extends InstallAction {
                 String line = sc.nextLine();
                 if (line.trim().startsWith(JDBC_STR)) {
                     line = line.substring(0, line.indexOf(JDBC_STR) + JDBC_STR.length()) +
-                            InstallUtil.getJdbcUrl(hibernateDbInstance, false) + "</property>";
+                            dialect.getJdbcUrl(hibernateDbInstance, false) + "</property>";
                 } else if (line.trim().startsWith(USERNAME_STR)) {
                     line = line.substring(0, line.indexOf(USERNAME_STR) + USERNAME_STR.length()) + hibernateDbInstance.getUsername() + "</property>";
                 } else if (line.trim().startsWith(PASSWORD_STR)) {

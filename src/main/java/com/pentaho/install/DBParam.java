@@ -7,7 +7,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DBParam {
-	public enum DB {MySQL, PostgreSQL, Oracle, MSSQLServer}
+	public enum DB {Mysql, Psql, Orcl, Sqlserver}
+
+    public static String POSTGRESQL_CONNECT_COMMAND_L = "\\connect";
+    public static String POSTGRESQL_CONNECT_COMMAND_S = "\\c";
+    public static String ORACLE_CONNECT_COMMAND = "conn";
 
 	public static String RESOURCE_NAME_HIBERNATE = "jdbc/Hibernate";
 	public static String RESOURCE_NAME_AUDIT = "jdbc/Audit";
@@ -34,40 +38,40 @@ public class DBParam {
 
     static {
         dbDirMap = new HashMap<>();
-        dbDirMap.put(DB.MySQL, "mysql5");
-        dbDirMap.put(DB.PostgreSQL, "postgresql");
-        dbDirMap.put(DB.Oracle, "oracle10g");
-        dbDirMap.put(DB.MSSQLServer, "sqlserver");
+        dbDirMap.put(DB.Mysql, "mysql5");
+        dbDirMap.put(DB.Psql, "postgresql");
+        dbDirMap.put(DB.Orcl, "oracle10g");
+        dbDirMap.put(DB.Sqlserver, "sqlserver");
 
 		JDBC_PREFIX = new HashMap<>();
-		JDBC_PREFIX.put(DB.MySQL, "jdbc:mysql://");
-		JDBC_PREFIX.put(DB.PostgreSQL, "jdbc:postgresql://");
-		JDBC_PREFIX.put(DB.Oracle, "jdbc:oracle:thin:@");
-		JDBC_PREFIX.put(DB.MSSQLServer, "jdbc:sqlserver://");
+		JDBC_PREFIX.put(DB.Mysql, "jdbc:mysql://");
+		JDBC_PREFIX.put(DB.Psql, "jdbc:postgresql://");
+		JDBC_PREFIX.put(DB.Orcl, "jdbc:oracle:thin:@");
+		JDBC_PREFIX.put(DB.Sqlserver, "jdbc:sqlserver://");
 		
 		dbDefaultAdminMap = new HashMap<>();
-		dbDefaultAdminMap.put(DB.MySQL, "root");
-		dbDefaultAdminMap.put(DB.PostgreSQL, "postgres");
-		dbDefaultAdminMap.put(DB.Oracle, "system");
-		dbDefaultAdminMap.put(DB.MSSQLServer, "sa");
+		dbDefaultAdminMap.put(DB.Mysql, "root");
+		dbDefaultAdminMap.put(DB.Psql, "postgres");
+		dbDefaultAdminMap.put(DB.Orcl, "system");
+		dbDefaultAdminMap.put(DB.Sqlserver, "sa");
 		
 		DB_PORT = new HashMap<>();
-		DB_PORT.put(DB.MySQL, "3306");
-		DB_PORT.put(DB.PostgreSQL, "5432");
-		DB_PORT.put(DB.Oracle, "1521");
-		DB_PORT.put(DB.MSSQLServer, "1433");
+		DB_PORT.put(DB.Mysql, "3306");
+		DB_PORT.put(DB.Psql, "5432");
+		DB_PORT.put(DB.Orcl, "1521");
+		DB_PORT.put(DB.Sqlserver, "1433");
 		
 		DB_NAME_LENGTH = new HashMap<>();
-		DB_NAME_LENGTH.put(DB.MSSQLServer, 128);
-		DB_NAME_LENGTH.put(DB.MySQL, 64);
-		DB_NAME_LENGTH.put(DB.Oracle, 8);
-		DB_NAME_LENGTH.put(DB.PostgreSQL, 63);
+		DB_NAME_LENGTH.put(DB.Sqlserver, 128);
+		DB_NAME_LENGTH.put(DB.Mysql, 64);
+		DB_NAME_LENGTH.put(DB.Orcl, 8);
+		DB_NAME_LENGTH.put(DB.Psql, 63);
 		
 		DB_USERNAME_LENGTH = new HashMap<>();
-		DB_USERNAME_LENGTH.put(DB.MSSQLServer, 128);
-		DB_USERNAME_LENGTH.put(DB.MySQL, 16);
-		DB_USERNAME_LENGTH.put(DB.Oracle, 30);
-		DB_USERNAME_LENGTH.put(DB.PostgreSQL, 63);
+		DB_USERNAME_LENGTH.put(DB.Sqlserver, 128);
+		DB_USERNAME_LENGTH.put(DB.Mysql, 16);
+		DB_USERNAME_LENGTH.put(DB.Orcl, 30);
+		DB_USERNAME_LENGTH.put(DB.Psql, 63);
 	}
 
 	public static Map<String, DBInstance> initDbInstances(SERVER serverType, DB dbType) {
@@ -81,11 +85,11 @@ public class DBParam {
 	}
 	
 	public static String getValidationQuery(DB dbType) {
-		return dbType == DB.Oracle ? "select 1 from dual" : "select 1";
+		return dbType == DB.Orcl ? "select 1 from dual" : "select 1";
 	}
 	
 	protected String adminUser, adminPassword;
-	protected DB type = DBParam.DB.PostgreSQL;
+	protected DB type = DBParam.DB.Psql;
 	protected String jdbcPrefix;
 	protected String host = "localhost";
 	protected String port = "";

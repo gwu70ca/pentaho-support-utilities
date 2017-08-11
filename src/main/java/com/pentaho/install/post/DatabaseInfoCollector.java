@@ -3,7 +3,11 @@ package com.pentaho.install.post;
 import com.pentaho.install.*;
 import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.PentahoServerParam.SERVER;
-import com.pentaho.install.input.*;
+import com.pentaho.install.db.Dialect;
+import com.pentaho.install.input.BooleanInput;
+import com.pentaho.install.input.DBUsernameInput;
+import com.pentaho.install.input.IntegerInput;
+import com.pentaho.install.input.StringInput;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,28 +30,28 @@ public class DatabaseInfoCollector extends InstallAction {
 		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_mysql.sql");
 		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_mysql.sql");
 		m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_mysql.sql");
-		dbFileMap.put(DB.MySQL, m);
+		dbFileMap.put(DB.Mysql, m);
 
 		m = new HashMap<>();
 		m.put(DBParam.DB_NAME_HIBERNATE, "create_repository_postgresql.sql");
 		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_postgresql.sql");
 		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_postgresql.sql");
         m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_postgresql.sql");
-		dbFileMap.put(DB.PostgreSQL, m);
+		dbFileMap.put(DB.Psql, m);
 
 		m = new HashMap<>();
 		m.put(DBParam.DB_NAME_HIBERNATE, "create_repository_ora.sql");
 		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_ora.sql");
 		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_ora.sql");
         m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_oracle.sql");
-		dbFileMap.put(DB.Oracle, m);
+		dbFileMap.put(DB.Orcl, m);
 
 		m = new HashMap<>();
 		m.put(DBParam.DB_NAME_HIBERNATE, "create_repository_sqlServer.sql");
 		m.put(DBParam.DB_NAME_JACKRABBIT, "create_jcr_sqlServer.sql");
 		m.put(DBParam.DB_NAME_QUARTZ, "create_quartz_sqlServer.sql");
         m.put(DBParam.DB_NAME_PENT_OP_MART, "pentaho_mart_sqlserver.sql");
-		dbFileMap.put(DB.MSSQLServer, m);
+		dbFileMap.put(DB.Sqlserver, m);
 	}
 
 	private DB dbType;
@@ -192,7 +196,9 @@ public class DatabaseInfoCollector extends InstallAction {
 		
 		if (createDbInput.yes()) {
 			try {
-				String jdbcDriverClass = InstallUtil.getJdbcDriverClass(dbType);
+                Dialect dialect = InstallUtil.createDialect(dbType);
+
+				String jdbcDriverClass = dialect.getJdbcDriverClass();
 				Logger.log("Looking for JDBC driver class: " + jdbcDriverClass);
 				Class.forName(jdbcDriverClass);
 			} catch (ClassNotFoundException ex) {
@@ -227,7 +233,9 @@ public class DatabaseInfoCollector extends InstallAction {
 			BooleanInput customDbInput = new BooleanInput("Do you want to customize database name, username or password [y/n]? ");
 			InstallUtil.ask(scanner, customDbInput);
 			boolean customDb = customDbInput.yes(); 
-			
+
+			Dialect dialect = InstallUtil.createDialect(dbParam);
+
 			Map<String, String> fileMap = dbFileMap.get(dbType);
 			for (Map.Entry<String, DBInstance> entry : dbInstanceMap.entrySet()) {
 				String dbName = entry.getKey();
@@ -245,8 +253,12 @@ public class DatabaseInfoCollector extends InstallAction {
 				if (customDb) {
 					InstallUtil.newLine();
 
-					if (!DB.Oracle.equals(dbType)) {
-						//Oracle does not need db name
+					dbName = dialect.promptDbName(dbName, dbInstance, scanner);
+
+					dialect.setDefaultUsername(dbName, dbInstance, serverType);
+					/*
+					if (!DB.Orcl.equals(dbType)) {
+						//Orcl does not need db name
 
                         if (!dbName.equals(DBParam.DB_NAME_PENT_OP_MART)) {
                             //no need to change pentaho_operations_mart's name
@@ -261,6 +273,7 @@ public class DatabaseInfoCollector extends InstallAction {
                             dbInstance.setDefaultUsername("di_quartz");
                         }
 					}
+					*/
 
                     String dbUsername, dbPassword;
                     if (DBParam.DB_NAME_PENT_OP_MART.equals(dbInstance.getDefaultName())) {

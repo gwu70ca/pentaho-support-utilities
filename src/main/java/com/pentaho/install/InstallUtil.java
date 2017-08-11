@@ -1,5 +1,7 @@
 package com.pentaho.install;
 
+import com.pentaho.install.db.*;
+
 import java.io.File;
 import java.util.Scanner;
 
@@ -36,19 +38,21 @@ public class InstallUtil {
 		
 		return path.substring(lastSlash+1, path.length());
 	}
-	
+
+	/*
 	public static String getJdbcDriverClass(DB dbType) {
 		String driver = "com.mysql.jdbc.Driver";
-		if (dbType == DB.MSSQLServer) {
+		if (dbType == DB.Sqlserver) {
 			driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-		} else if (dbType == DB.Oracle) {
+		} else if (dbType == DB.Orcl) {
 			driver = "oracle.jdbc.OracleDriver";
-		} else if (dbType == DB.PostgreSQL) {
+		} else if (dbType == DB.Psql) {
 			driver = "org.postgresql.Driver";
 		}
 		
 		return driver;
 	}
+	*/
 	
 	public static void ask(Scanner scanner, com.pentaho.install.input.Input input) {
 		do {
@@ -78,36 +82,9 @@ public class InstallUtil {
 		System.out.println();
 	}
 
-	public static boolean isOracle(DBInstance dbInstance) {
-	    return dbInstance.getType().equals(DB.Oracle);
+	public static boolean isOrcl(DBInstance dbInstance) {
+	    return dbInstance.getType().equals(DB.Orcl);
     }
-	
-	public static String getJdbcUrl(DBInstance dbInstance) {
-		return getJdbcUrl(dbInstance, false);
-	}
-
-	public static String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
-        DB dbType = dbInstance.getType();
-
-		String url = null;
-		if (dbInstance.getType() == DB.MySQL) {
-            url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/"
-                    + (isAdmin ? "" : dbInstance.getName());
-		} else if (dbType == DB.MSSQLServer) {
-		    String dbName = dbInstance.getName();
-		    if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)) {
-		        dbName = DBParam.DB_NAME_HIBERNATE;
-            }
-			url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort()
-					+ (isAdmin ? "" : ";DatabaseName=" + dbName);
-		} else if (dbType == DB.Oracle) {
-			url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/XE";
-		} else if (dbType == DB.PostgreSQL) {
-			url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/"
-					+ (isAdmin ? "" : dbInstance.getName());
-		}
-		return url;
-	}
 
 	public static String getLdapUserSearchFilter(LDAPParam param, String accountName) {
 		String searchFilter = LDAPParam.AHACHEDS_USER_SEARCH_FILTER_CN;
@@ -172,5 +149,30 @@ public class InstallUtil {
 
     public static String getServerRootDir(InstallParam installParam) throws Exception {
 	    return installParam.installDir + "/server/" + PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType);
+    }
+
+    public static Dialect createDialect(DBParam dbParam) {
+	    return createDialect(dbParam.getType());
+    }
+
+    public static Dialect createDialect(DB dbType) {
+	    Dialect d;
+	    switch (dbType) {
+	        case Mysql:
+	            d = new Mysql();
+	            break;
+            case Orcl:
+                d = new Orcl();
+                break;
+            case Psql:
+                d = new Psql();
+                break;
+            case Sqlserver:
+                d = new Sqlserver();
+                break;
+            default:
+                d = new Psql();
+        }
+        return d;
     }
 }
