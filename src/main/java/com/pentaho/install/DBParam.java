@@ -1,7 +1,5 @@
 package com.pentaho.install;
 
-import com.pentaho.install.PentahoServerParam.SERVER;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -74,7 +72,7 @@ public class DBParam {
 		DB_USERNAME_LENGTH.put(DB.Psql, 63);
 	}
 
-	public static Map<String, DBInstance> initDbInstances(SERVER serverType, DB dbType) {
+	public static Map<String, DBInstance> initDbInstances(DB dbType) {
 		Map<String, DBInstance> dbInstanceMap = new LinkedHashMap<>();
         dbInstanceMap.put(DBParam.DB_NAME_HIBERNATE, new DBInstance(DBParam.DB_NAME_HIBERNATE, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_HIBERNATE));
         dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, "jcr_user", "password", dbType, DBParam.RESOURCE_NAME_AUDIT));

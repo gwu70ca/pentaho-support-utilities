@@ -78,7 +78,7 @@ public class DatabaseInfoCollector extends InstallAction {
 	}
 
 	public ActionResult execute() {
-        dbInstanceMap = DBParam.initDbInstances(serverType, dbType);
+        dbInstanceMap = DBParam.initDbInstances(dbType);
         initSqlScriptFiles();
 
 		if (PostInstaller.SILENT) {

@@ -236,6 +236,8 @@ public class Connector {
 	}
 
 	public static void main(String[] args) {
+		InstallUtil.output("This installer performs Pentaho Business Analytics (BA) Server or Data Integration (DI) Server Post Installation (Version 6.1, Archive mode)");
+		
 		Connector c = new Connector();
 		c.execute();
 	}

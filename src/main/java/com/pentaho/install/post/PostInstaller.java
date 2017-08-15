@@ -40,8 +40,7 @@ public class PostInstaller {
 						//dryrun will still connect to database, just don't execute any sql statement
 						SqlScriptRunner.DRYRUN = true;
 					}
-					
-				}	
+				}
 			} catch (Exception ex) {
 				InstallUtil.output("Invalid CLI parameters");
 				InstallUtil.exit();

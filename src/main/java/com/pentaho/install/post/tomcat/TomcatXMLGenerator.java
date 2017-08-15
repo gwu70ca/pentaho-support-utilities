@@ -66,7 +66,6 @@ public class TomcatXMLGenerator extends XMLGenerator {
 
     private Resource createResource(DBInstance db, Dialect dialect) {
         return new Resource(
-                //InstallUtil.getJdbcDriverClass(db.getType()),
                 dialect.getJdbcDriverClass(),
                 db.getResourceName(),
                 db.getPassword(),
@@ -93,18 +92,4 @@ public class TomcatXMLGenerator extends XMLGenerator {
 
         return success;
     }
-
-    /*
-    public static void main(String[] args) throws Exception {
-        System.setProperty("local", "true");
-        InstallParam installParam = new InstallParam();
-        installParam.dbType = DBParam.DB.Psql;
-        installParam.pentahoServerType = PentahoServerParam.SERVER.BA;
-        Map<String, DBInstance> dbInstanceMap = DBParam.initDbInstances(PentahoServerParam.SERVER.BA);
-        installParam.dbInstanceMap = dbInstanceMap;
-
-        TomcatXMLGenerator txg = new TomcatXMLGenerator(installParam);
-        txg.createTomcatConfig();
-    }
-    */
 }
