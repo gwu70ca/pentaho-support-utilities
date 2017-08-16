@@ -1,14 +1,13 @@
 package com.pentaho.support.connection;
 
+import org.apache.jackrabbit.commons.JcrUtils;
+
 import javax.jcr.GuestCredentials;
 import javax.jcr.Repository;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
-import org.apache.jackrabbit.commons.JcrUtils;
-
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class JCRConnector {
     public static void main(String[] args) throws Exception {

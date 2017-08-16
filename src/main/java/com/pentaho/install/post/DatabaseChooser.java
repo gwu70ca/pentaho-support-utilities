@@ -1,12 +1,12 @@
 package com.pentaho.install.post;
 
-import java.util.Scanner;
-
 import com.pentaho.install.ActionResult;
 import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.InstallAction;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.input.SelectInput;
+
+import java.util.Scanner;
 
 /**
  * Select database type
@@ -22,14 +22,14 @@ public class DatabaseChooser extends InstallAction {
 	
 	private String prompt() {
 		StringBuffer buf = new StringBuffer();
-		buf.append(NEW_LINE).append(bar()).append(NEW_LINE);
+		buf.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 		
 		int index = 1;
 		for (DB db : DB.values()) {
 			buf.append(index++).append(": ").append(db).append(NEW_LINE);
 		}
 		
-		buf.append(bar()).append(NEW_LINE);
+		buf.append(InstallUtil.bar()).append(NEW_LINE);
 		buf.append("Select the database type: ");
 		return buf.toString();
 	}

@@ -16,13 +16,13 @@ public class ServerChooser extends InstallAction {
 	
 	private String prompt() {
 		StringBuilder buf = new StringBuilder();
-		buf.append(NEW_LINE).append(bar()).append(NEW_LINE);
+		buf.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 		
 		buf.append("1: Business Analytics Server (6.1, BA)\n" );
 		buf.append("2: Data Intergration Server (6.1, DI)\n" );
 		buf.append("3: Pentaho Server (7.1, HYBRID)\n" );
 		
-		buf.append(bar()).append(NEW_LINE);
+		buf.append(InstallUtil.bar()).append(NEW_LINE);
 		buf.append("Select the application server type: ");
 		return buf.toString();
 	}

@@ -5,6 +5,8 @@ import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.db.Dialect;
 
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.sql.*;
 import java.util.Properties;
 
@@ -14,10 +16,10 @@ public class JDBCConnector {
     public static void usage() {
         System.out.println("=================================================================================");
         System.out.println("options:");
-        System.out.println("  -H, --host          Database hostname or IP address");
-        System.out.println("  -P, --port          Database port number");
-        System.out.println("  -U, --user          Database username");
-        System.out.println("  -W, --pass          Database password");
+        System.out.println("  -H, --host          Database server hostname or IP address");
+        System.out.println("  -P, --port          Database server port number");
+        System.out.println("  -U, --user          Database server username");
+        System.out.println("  -W, --pass          Database server password");
         System.out.println("  -N, --name          Database name");
         System.out.println("  -T, --type          Database vendor [mysql|postgresql|sqlserver|oracle]");
         System.out.println("  -I, --windows       Use Microsoft Windows Integration Authentication");
@@ -89,6 +91,12 @@ public class JDBCConnector {
             System.out.println(dbInstance);
         }
 
+        ClassLoader cl = ClassLoader.getSystemClassLoader();
+        URL[] urls = ((URLClassLoader) cl).getURLs();
+        for (URL url : urls) {
+            System.out.println(url.getFile());
+        }
+
         test(dbInstance);
     }
 
@@ -106,67 +114,140 @@ public class JDBCConnector {
         return DBParam.DB.valueOf(str);
     }
 
-    public static void test(DBInstance dbInstance) {
+    public static boolean test(DBInstance dbInstance) {
+        boolean success = false;
+
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
         try {
-            Dialect dialect = InstallUtil.createDialect(dbInstance);
-            String url = dialect.getJdbcUrl(dbInstance, dbInstance.getName() == null || dbInstance.getName().length() == 0);
-            Properties connectionProps = new Properties();
-            if (dbInstance.isWinAuth() && DBParam.DB.Sqlserver.equals(dbInstance.getType())) {
-                url += ";integratedSecurity=true";
-            } else {
-                connectionProps.put("user", dbInstance.getUsername());
-                connectionProps.put("password", dbInstance.getPassword());
-            }
-            System.out.println(url);
-
-            System.out.println("Connecting to " + dbInstance.getHost() + "@" + dbInstance.getPort() + " ..... ");
-            if (!dbInstance.isWinAuth()) {
-                conn = DriverManager.getConnection(url, connectionProps);
-            } else {
-                conn = DriverManager.getConnection(url);
-            }
-            System.out.println("\t[connected]\n");
+            conn = getConnection(dbInstance);
 
             stmt = conn.createStatement();
             String validateSql = DBParam.getValidationQuery(dbInstance.getType());
             System.out.println("Running validation query: " + validateSql + " ..... ");
             rs = stmt.executeQuery(validateSql);
 
-            boolean success = false;
             if (rs.next()) {
                 success = (rs.getInt(1) != 0);
             }
 
             System.out.println("\t" + (success ? "[succeeded]" : "[failed]"));
+            System.out.println();
+            if (success) {
+
+                try {
+                    System.out.println("==================================================");
+                    DatabaseMetaData metadata = conn.getMetaData();
+                    System.out.println("JDBC Driver And Database Information");
+                    System.out.println("Driver Name: " + metadata.getDriverName());
+                    System.out.println("Driver Version: " + metadata.getDriverVersion());
+                    System.out.println("JDBC Version: " + metadata.getJDBCMajorVersion() + "." + metadata.getJDBCMinorVersion());
+                    System.out.println("Database Product Name: " + metadata.getDatabaseProductName());
+                    System.out.println("Database Product Version: " + metadata.getDatabaseProductVersion());
+                    System.out.println("==================================================");
+                    System.out.println();
+                } catch (Exception e) {
+                    System.err.println("Failed to obtain Database Metadata");
+                }
+            }
         } catch (SQLException sqle) {
             String message = sqle.getMessage();
             if (message.indexOf("No suitable driver") >= 0) {
                 System.out.println("Installer could not find the JDBC driver.");
             } else {
-                System.out.println("Could not connect to database.");
                 System.err.println(message);
             }
         } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception ex) {
+            close(conn, stmt, rs);
+        }
+
+        return success;
+    }
+
+    public static boolean executeSql(DBInstance dbInstance, String sql) {
+        boolean success = false;
+
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            String sqlLower = sql.toLowerCase();
+            conn = getConnection(dbInstance);
+            stmt = conn.createStatement();
+
+            if (sqlLower.startsWith("select")) {
+                rs = stmt.executeQuery(sql);
+                if (rs.next()) {
+                    int count = rs.getInt(1);
+                    System.out.println("Number of records returned: " + count);
+                    success = true;
                 }
+            } else {
+                success = stmt.execute(sql);
             }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (Exception ex) {
-                }
+
+            System.out.println("\t" + (success ? "[succeeded]" : "[failed]"));
+            System.out.println();
+        } catch (SQLException sqle) {
+            String message = sqle.getMessage();
+            if (message.indexOf("No suitable driver") >= 0) {
+                System.out.println("Could not find the JDBC driver in classpath.");
+            } else {
+                System.err.println(message);
             }
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (Exception ex) {
-                }
+        } finally {
+            close(conn, stmt, rs);
+        }
+
+        return success;
+    }
+
+    private static Connection getConnection(DBInstance dbInstance) throws SQLException {
+        Connection conn;
+
+        Dialect dialect = InstallUtil.createDialect(dbInstance);
+        String url = dialect.getJdbcUrl(dbInstance, dbInstance.getName() == null || dbInstance.getName().length() == 0);
+        Properties connectionProps = new Properties();
+        if (dbInstance.isWinAuth() && DBParam.DB.Sqlserver.equals(dbInstance.getType())) {
+            url += ";integratedSecurity=true";
+        } else {
+            connectionProps.put("user", dbInstance.getUsername());
+            connectionProps.put("password", dbInstance.getPassword());
+        }
+        System.out.println(url);
+
+        System.out.println("Connecting to " + dbInstance.getHost() + "@" + dbInstance.getPort() + " ..... ");
+        if (!dbInstance.isWinAuth()) {
+            conn = DriverManager.getConnection(url, connectionProps);
+        } else {
+            conn = DriverManager.getConnection(url);
+        }
+        System.out.println("\t[connected]\n");
+
+        return conn;
+    }
+
+    private static void close(Connection conn, Statement stmt, ResultSet rs) {
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (Exception ex) {
+                System.err.println(ex.getMessage());
+            }
+        }
+        if (stmt != null) {
+            try {
+                stmt.close();
+            } catch (Exception ex) {
+                System.err.println(ex.getMessage());
+            }
+        }
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (Exception ex) {
+                System.err.println(ex.getMessage());
             }
         }
     }

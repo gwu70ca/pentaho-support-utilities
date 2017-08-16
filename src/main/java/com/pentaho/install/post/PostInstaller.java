@@ -23,49 +23,23 @@ public class PostInstaller {
 	
 	String installCfgFile;
 	Scanner scanner;
-	
-	public static void main(String[] args) throws Exception {
-		InstallUtil.output("This installer performs Pentaho Business Analytics (BA) Server or Data Integration (DI) Server Post Installation (Version 6.1, Archive mode)");
-		
-		String cfgFile = null;
-		if (args.length > 0) {
-			try {
-				for (int i=0;i<args.length;i++) {
-					if (args[i].equals("-F") || args[i].equals("--file")) {
-						cfgFile = args[++i];
-						SILENT = true;
-					} else if (args[i].equals("-D") || args[i].equals("--debug")) {
-						DEBUG = true;
-					} else if (args[i].equals("-R") || args[i].equals("--dryrun")) {
-						//dryrun will still connect to database, just don't execute any sql statement
-						SqlScriptRunner.DRYRUN = true;
-					}
-				}
-			} catch (Exception ex) {
-				InstallUtil.output("Invalid CLI parameters");
-				InstallUtil.exit();
-			}
-		}
-		
-		PostInstaller installer = new PostInstaller();
-		installer.install(cfgFile);
+
+	public PostInstaller(Scanner scanner, String installCfgFile) {
+		this.scanner = scanner;
+		this.installCfgFile = installCfgFile;
 	}
-	
-	private void install(String cfgFile) throws Exception {
-		this.installCfgFile = cfgFile;
-		
+
+	public void install() throws Exception {
 		if (SILENT) {
 			File installConfigFile = new File(installCfgFile);
-			if (!installConfigFile.exists() || 
+			if (!installConfigFile.exists() ||
 					installConfigFile.isDirectory() ||
 					!installConfigFile.canRead()) {
 				InstallUtil.output("Invalid installation configuration file: " + installCfgFile);
 				throw new Exception("Invalid installation configuration file: " + installCfgFile);
-			}	
-		} else {
-			this.scanner = new Scanner(System.in);
+			}
 		}
-		
+
 		InstallParamCollector paramCollector = new InstallParamCollector(this.installCfgFile,scanner);
 		InstallParam installParam = paramCollector.execute();
 		
@@ -81,8 +55,40 @@ public class PostInstaller {
 		cfgUpdator.execute();
 		
 		InstallUtil.newLine();
-		if (!SILENT) {
-			scanner.close();
-		}
 	}
+
+    public static void main(String[] args) throws Exception {
+        InstallUtil.output("This program performs Pentaho Server Post Installation with Archive mode (Version 7.x, Version 6.1 BA/DI)");
+
+        String cfgFile = null;
+        if (args.length > 0) {
+            try {
+                for (int i=0;i<args.length;i++) {
+                    if (args[i].equals("-F") || args[i].equals("--file")) {
+                        cfgFile = args[++i];
+                        SILENT = true;
+                    } else if (args[i].equals("-D") || args[i].equals("--debug")) {
+                        DEBUG = true;
+                    } else if (args[i].equals("-R") || args[i].equals("--dryrun")) {
+                        //dryrun will still connect to database, just don't execute any sql statement
+                        SqlScriptRunner.DRYRUN = true;
+                    }
+                }
+            } catch (Exception ex) {
+                InstallUtil.output("Invalid CLI parameters");
+                InstallUtil.exit();
+            }
+        }
+
+        Scanner scanner = null;
+        if (!SILENT) {
+            scanner = new Scanner(System.in);
+        }
+        PostInstaller installer = new PostInstaller(scanner, cfgFile);
+        installer.install();
+
+        if (!SILENT) {
+            scanner.close();
+        }
+    }
 }

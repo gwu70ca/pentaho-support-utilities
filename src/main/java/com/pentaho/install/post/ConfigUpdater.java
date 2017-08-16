@@ -56,12 +56,12 @@ public class ConfigUpdater extends InstallAction {
 
     private String prompt() {
         StringBuilder buf = new StringBuilder();
-        buf.append(NEW_LINE).append(bar()).append(NEW_LINE);
+        buf.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 
         buf.append("1: Apache Tomcat\n");
         buf.append("2: Jboss Application Server\n");
 
-        buf.append(bar()).append(NEW_LINE);
+        buf.append(InstallUtil.bar()).append(NEW_LINE);
         buf.append("Select the application server type: ");
         return buf.toString();
     }

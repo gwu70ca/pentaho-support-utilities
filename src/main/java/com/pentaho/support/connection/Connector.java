@@ -10,235 +10,242 @@ import com.pentaho.install.input.*;
 
 import java.util.Scanner;
 
+import static com.pentaho.install.InstallUtil.NEW_LINE;
+import static com.pentaho.install.InstallUtil.EXIT;
+
 public class Connector {
-	static String EXIT = "0";
-	
-	Scanner scanner;
-	
-	String NEW_LINE = System.lineSeparator();
+    Scanner scanner;
 
-	String exitMenuEntry() {
-		return EXIT + ": Exit";
-	}
-	
-	private String[] menuPrompt() {
-		StringBuffer txt = new StringBuffer();
-		txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
-		
-		int index = 1;
-		txt.append(index++ + ": Test JDBC Connection").append(NEW_LINE);
-		txt.append(index++ + ": Test LDAP Connection").append(NEW_LINE);
-		txt.append(exitMenuEntry()).append(NEW_LINE);
+    public Connector(Scanner scanner) {
+        this.scanner = scanner;
+    }
 
-		txt.append(InstallUtil.bar()).append(NEW_LINE);
-		txt.append("What do you want: ");
-		return new String[]{txt.toString(),"0,1,2"};
-	}
-	
-	public void execute() {
-		this.scanner = new Scanner(System.in);
-		
-		try {
-			while (true) {
-				InstallUtil.newLine();
-				String[] menu = menuPrompt();
-				SelectInput rootInput = new SelectInput(menu[0], menu[1].split(","));
-				InstallUtil.ask(scanner, rootInput);
-				
-				String index = rootInput.getValue();
-				if (EXIT.equals(index)) {
-					break;
-				}
-				
-				switch (index) {
-					case "1": testJdbc();
-					break;
-					case "2": testLdap();
-					break;
-				}
-			}
-		} catch (Exception ex) {
-			System.err.println(ex);
-		} finally {
-			this.scanner.close();
-		}
-	}
-	
-	private String[] dbTypePrompt() {
-		StringBuffer txt = new StringBuffer();
-		StringBuffer opt = new StringBuffer();
-		txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
-		
-		int index = 1;
-		for (DB db : DB.values()) {
-			opt.append(index).append(",");
-			txt.append(index++).append(": ").append(db).append(NEW_LINE);
-		}
-		
-		txt.append(InstallUtil.bar()).append(NEW_LINE);
-		txt.append("Select the database type: ");
-		return new String[]{txt.toString(), opt.substring(0, opt.length()-1)};
-	}
-	
-	private void testJdbc() {
-		InstallUtil.newLine();
-		String[] prompt = dbTypePrompt();
-		SelectInput dbTypeInput = new SelectInput(prompt[0], prompt[1].split(","));
-		InstallUtil.ask(scanner, dbTypeInput);
-		DB dbType = DB.values()[Integer.parseInt(dbTypeInput.getValue())-1];
-		System.out.println(dbType);
-		
-		String defaultAdminUser = DBParam.dbDefaultAdminMap.get(dbType);
-		DBInstance dbParam = new DBInstance("", defaultAdminUser, "");
-		dbParam.setType(dbType);
+    private String[] menuPrompt() {
+        StringBuffer txt = new StringBuffer();
+        txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 
-		boolean winAuth = false;
-		if (DB.Sqlserver.equals(dbType)) {
-			BooleanInput wiaInput = new BooleanInput("Do you want to use Microsoft Windows Integration Authentication [y/n]? ");
-			InstallUtil.ask(scanner, wiaInput);
-			winAuth = wiaInput.yes();
-			dbParam.setWinAuth(winAuth);
-		}
+        int index = 1;
+        txt.append(index++ + ": Test JDBC Connection").append(NEW_LINE);
+        txt.append(index++ + ": Test LDAP Connection").append(NEW_LINE);
+        txt.append(InstallUtil.exitMenuEntry()).append(NEW_LINE);
 
-		StringInput dbHostInput = new StringInput(String.format("Database hostname or IP address [%s]: ", dbParam.getHost()));
-		dbHostInput.setDefaultValue(dbParam.getHost());
-		InstallUtil.ask(scanner, dbHostInput);
-		dbParam.setHost(dbHostInput.getValue());
-		
-		IntegerInput dbPortInput = new IntegerInput("Database port [" + dbParam.getPort() + "]: ");
-		dbPortInput.setDefaultValue(dbParam.getPort());
-		InstallUtil.ask(scanner, dbPortInput);
-		dbParam.setPort(dbPortInput.getValue());
+        txt.append(InstallUtil.bar()).append(NEW_LINE);
+        txt.append("? ");
+        return new String[]{txt.toString(), "0,1,2"};
+    }
 
-		if (!winAuth) {
-			StringInput userInput = new StringInput("Database username [" + defaultAdminUser + "]: ");
-			userInput.setDefaultValue(defaultAdminUser);
-			InstallUtil.ask(scanner, userInput);
-			dbParam.setUsername(userInput.getValue());
+    public void execute() {
+        try {
+            while (true) {
+                InstallUtil.newLine();
+                String[] menu = menuPrompt();
+                SelectInput rootInput = new SelectInput(menu[0], menu[1].split(","));
+                InstallUtil.ask(scanner, rootInput);
 
-			StringInput passwordInput = new StringInput("Database password: ");
-			InstallUtil.ask(scanner, passwordInput);
-			dbParam.setPassword(passwordInput.getValue());
-		}
+                String index = rootInput.getValue();
+                if (EXIT.equals(index)) {
+                    break;
+                }
 
-		if (!dbType.equals(DB.Orcl)) {
-			DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dbParam.getType());
-			dbNameInput.setDefaultValue("");
-			InstallUtil.ask(scanner, dbNameInput);
-			
-			dbParam.setName(dbNameInput.getValue());
-		}
+                switch (index) {
+                    case "1":
+                        testJdbc();
+                        break;
+                    case "2":
+                        testLdap();
+                        break;
+                }
+            }
+        } catch (Exception ex) {
+            InstallUtil.error(ex.getMessage());
+        }
+    }
 
-		System.out.println(dbParam);
+    private String[] dbTypePrompt() {
+        StringBuffer txt = new StringBuffer();
+        StringBuffer opt = new StringBuffer();
+        txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 
-		JDBCConnector connector = new JDBCConnector();
-		connector.test(dbParam);
-	}
+        int index = 1;
+        for (DB db : DB.values()) {
+            opt.append(index).append(",");
+            txt.append(index++).append(": ").append(db).append(NEW_LINE);
+        }
 
-	private String[] ldapTypePrompt() {
-		StringBuffer txt = new StringBuffer();
-		StringBuffer opt = new StringBuffer();
-		txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
-		
-		int index = 1;
-		for (LDAP ldap : LDAP.values()) {
-			opt.append(index).append(",");
-			txt.append(index++).append(": ").append(ldap.getFullname()).append(NEW_LINE);
-		}
-		
-		txt.append(InstallUtil.bar()).append(NEW_LINE);
-		txt.append("Select the database type: ");
-		return new String[]{txt.toString(),opt.substring(0, opt.length()-1)};
-	}
-	
-	private void testLdap() {
-		InstallUtil.newLine();
-		String[] prompt = ldapTypePrompt();
-		SelectInput ldapTypeInput = new SelectInput(prompt[0], prompt[1].split(","));
-		InstallUtil.ask(scanner, ldapTypeInput);
-		LDAP ldapType = LDAP.values()[Integer.parseInt(ldapTypeInput.getValue())-1];
-		System.out.println(ldapType);
+        txt.append(InstallUtil.bar()).append(NEW_LINE);
+        txt.append("Select the database type: ");
+        return new String[]{txt.toString(), opt.substring(0, opt.length() - 1)};
+    }
 
-		LDAPParam ldapParam = new LDAPParam();
-		ldapParam.setType(ldapType);
+    private void testJdbc() {
+        InstallUtil.newLine();
+        String[] prompt = dbTypePrompt();
+        SelectInput dbTypeInput = new SelectInput(prompt[0], prompt[1].split(","));
+        InstallUtil.ask(scanner, dbTypeInput);
+        DB dbType = DB.values()[Integer.parseInt(dbTypeInput.getValue()) - 1];
+        System.out.println(dbType);
 
-		StringInput ldapHostInput = new StringInput(String.format("LDAP server hostname or IP address [%s]: ", ldapParam.getHost()));
-		ldapHostInput.setDefaultValue(ldapParam.getHost());
-		InstallUtil.ask(scanner, ldapHostInput);
-		ldapParam.setHost(ldapHostInput.getValue());
+        String defaultAdminUser = DBParam.dbDefaultAdminMap.get(dbType);
+        DBInstance dbParam = new DBInstance("", defaultAdminUser, "");
+        dbParam.setType(dbType);
 
-		IntegerInput dbPortInput = new IntegerInput("LDAP server port [" + ldapParam.getPort() + "]: ");
-		dbPortInput.setDefaultValue(ldapParam.getPort());
-		InstallUtil.ask(scanner, dbPortInput);
-		ldapParam.setPort(dbPortInput.getValue());
+        boolean winAuth = false;
+        if (DB.Sqlserver.equals(dbType)) {
+            BooleanInput wiaInput = new BooleanInput("Do you want to use Microsoft Windows Integration Authentication [y/n]? ");
+            InstallUtil.ask(scanner, wiaInput);
+            winAuth = wiaInput.yes();
+            dbParam.setWinAuth(winAuth);
+        }
 
-		StringInput adminUserInput = new StringInput("DN or username: ");
-		InstallUtil.ask(scanner, adminUserInput);
-		ldapParam.setAdminUser(adminUserInput.getValue());
+        StringInput dbHostInput = new StringInput(String.format("Database hostname or IP address [%s]: ", dbParam.getHost()));
+        dbHostInput.setDefaultValue(dbParam.getHost());
+        InstallUtil.ask(scanner, dbHostInput);
+        dbParam.setHost(dbHostInput.getValue());
 
-		StringInput adminPasswordInput = new StringInput("Password: ");
-		InstallUtil.ask(scanner, adminPasswordInput);
-		ldapParam.setAdminPassword(adminPasswordInput.getValue());
+        IntegerInput dbPortInput = new IntegerInput("Database port [" + dbParam.getPort() + "]: ");
+        dbPortInput.setDefaultValue(dbParam.getPort());
+        InstallUtil.ask(scanner, dbPortInput);
+        dbParam.setPort(dbPortInput.getValue());
 
-		LDAPConnector connector = new LDAPConnector();
-		boolean connected = connector.test(ldapParam);
+        if (!winAuth) {
+            StringInput userInput = new StringInput("Database username [" + defaultAdminUser + "]: ");
+            userInput.setDefaultValue(defaultAdminUser);
+            InstallUtil.ask(scanner, userInput);
+            dbParam.setUsername(userInput.getValue());
 
-		if (connected) {
-			BooleanInput searchUserInput = new BooleanInput("\nDo you want to search user [y/n]? ");
-			InstallUtil.ask(scanner, searchUserInput);
-			if (searchUserInput.yes()) {
-				if (LDAP.MSAD.equals(ldapType)) {
-					BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
-					InstallUtil.ask(scanner,useSamInput);
-					ldapParam.setUseSamAccountName(useSamInput.yes());
-				}
+            StringInput passwordInput = new StringInput("Database password: ");
+            InstallUtil.ask(scanner, passwordInput);
+            dbParam.setPassword(passwordInput.getValue());
+        }
 
-				String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
-				StringInput ldapUserInput = new StringInput(accountType);
-				//Allow empty name to return all users
-				ldapUserInput.setDefaultValue("");
-				InstallUtil.ask(scanner, ldapUserInput);
-				ldapParam.setUserSearchFilter(InstallUtil.getLdapUserSearchFilter(ldapParam, ldapUserInput.getValue()));
+        if (!dbType.equals(DB.Orcl)) {
+            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dbParam.getType());
+            dbNameInput.setDefaultValue("");
+            InstallUtil.ask(scanner, dbNameInput);
 
-				StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
-				InstallUtil.ask(scanner, ldapSearchBaseInput);
-				ldapParam.setUserSearchBase(ldapSearchBaseInput.getValue());
+            dbParam.setName(dbNameInput.getValue());
+        }
 
-				connector.searchUser(ldapParam);
-			}
+        System.out.println(dbParam);
 
-			ldapParam.setUseSamAccountName(false);
-			InstallUtil.newLine();
+        JDBCConnector connector = new JDBCConnector();
+        if (connector.test(dbParam)) {
+            BooleanInput input = new BooleanInput("Do you want to run a SQL query, [n/y]? ");
+            InstallUtil.ask(scanner, input);
+            if (input.yes()) {
+                StringInput sqlInput = new StringInput("Input your SQL: \n");
+                InstallUtil.ask(scanner, sqlInput);
+                connector.executeSql(dbParam, sqlInput.getValue());
+            }
+        }
+    }
 
-			BooleanInput searchGroupInput = new BooleanInput("\nDo you want to search group [y/n]? ");
-			InstallUtil.ask(scanner, searchGroupInput);
-			if (searchGroupInput.yes()) {
-				if (LDAP.MSAD.equals(ldapType)) {
-					BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
-					InstallUtil.ask(scanner,useSamInput);
-					ldapParam.setUseSamAccountName(useSamInput.yes());
-				}
+    private String[] ldapTypePrompt() {
+        StringBuffer txt = new StringBuffer();
+        StringBuffer opt = new StringBuffer();
+        txt.append(NEW_LINE).append(InstallUtil.bar()).append(NEW_LINE);
 
-				String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
-				StringInput ldapGroupInput = new StringInput(accountType);
-				//Allow empty name to return all groups
-				ldapGroupInput.setDefaultValue("");
-				InstallUtil.ask(scanner, ldapGroupInput);
-				ldapParam.setGroupSearchFilter(InstallUtil.getLdapGroupSearchFilter(ldapParam, ldapGroupInput.getValue()));
+        int index = 1;
+        for (LDAP ldap : LDAP.values()) {
+            opt.append(index).append(",");
+            txt.append(index++).append(": ").append(ldap.getFullname()).append(NEW_LINE);
+        }
 
-				StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
-				InstallUtil.ask(scanner, ldapSearchBaseInput);
-				ldapParam.setGroupSearchBase(ldapSearchBaseInput.getValue());
+        txt.append(InstallUtil.bar()).append(NEW_LINE);
+        txt.append("Select the database type: ");
+        return new String[]{txt.toString(), opt.substring(0, opt.length() - 1)};
+    }
 
-				connector.searchGroup(ldapParam);
-			}
-		}
-	}
+    private void testLdap() {
+        InstallUtil.newLine();
+        String[] prompt = ldapTypePrompt();
+        SelectInput ldapTypeInput = new SelectInput(prompt[0], prompt[1].split(","));
+        InstallUtil.ask(scanner, ldapTypeInput);
+        LDAP ldapType = LDAP.values()[Integer.parseInt(ldapTypeInput.getValue()) - 1];
+        System.out.println(ldapType);
 
-	public static void main(String[] args) {
-		InstallUtil.output("This installer performs Pentaho Business Analytics (BA) Server or Data Integration (DI) Server Post Installation (Version 6.1, Archive mode)");
-		
-		Connector c = new Connector();
-		c.execute();
-	}
+        LDAPParam ldapParam = new LDAPParam();
+        ldapParam.setType(ldapType);
+
+        StringInput ldapHostInput = new StringInput(String.format("LDAP server hostname or IP address [%s]: ", ldapParam.getHost()));
+        ldapHostInput.setDefaultValue(ldapParam.getHost());
+        InstallUtil.ask(scanner, ldapHostInput);
+        ldapParam.setHost(ldapHostInput.getValue());
+
+        IntegerInput dbPortInput = new IntegerInput("LDAP server port [" + ldapParam.getPort() + "]: ");
+        dbPortInput.setDefaultValue(ldapParam.getPort());
+        InstallUtil.ask(scanner, dbPortInput);
+        ldapParam.setPort(dbPortInput.getValue());
+
+        StringInput adminUserInput = new StringInput("DN or username: ");
+        InstallUtil.ask(scanner, adminUserInput);
+        ldapParam.setAdminUser(adminUserInput.getValue());
+
+        StringInput adminPasswordInput = new StringInput("Password: ");
+        InstallUtil.ask(scanner, adminPasswordInput);
+        ldapParam.setAdminPassword(adminPasswordInput.getValue());
+
+        LDAPConnector connector = new LDAPConnector();
+        boolean connected = connector.test(ldapParam);
+
+        if (connected) {
+            BooleanInput searchUserInput = new BooleanInput("\nDo you want to search user [y/n]? ");
+            InstallUtil.ask(scanner, searchUserInput);
+            if (searchUserInput.yes()) {
+                if (LDAP.MSAD.equals(ldapType)) {
+                    BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
+                    InstallUtil.ask(scanner, useSamInput);
+                    ldapParam.setUseSamAccountName(useSamInput.yes());
+                }
+
+                String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
+                StringInput ldapUserInput = new StringInput(accountType);
+                //Allow empty name to return all users
+                ldapUserInput.setDefaultValue("");
+                InstallUtil.ask(scanner, ldapUserInput);
+                ldapParam.setUserSearchFilter(InstallUtil.getLdapUserSearchFilter(ldapParam, ldapUserInput.getValue()));
+
+                StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
+                InstallUtil.ask(scanner, ldapSearchBaseInput);
+                ldapParam.setUserSearchBase(ldapSearchBaseInput.getValue());
+
+                connector.searchUser(ldapParam);
+            }
+
+            ldapParam.setUseSamAccountName(false);
+            InstallUtil.newLine();
+
+            BooleanInput searchGroupInput = new BooleanInput("\nDo you want to search group [y/n]? ");
+            InstallUtil.ask(scanner, searchGroupInput);
+            if (searchGroupInput.yes()) {
+                if (LDAP.MSAD.equals(ldapType)) {
+                    BooleanInput useSamInput = new BooleanInput("Do you want to use SAM Account Name to perform the search [y/n]? ");
+                    InstallUtil.ask(scanner, useSamInput);
+                    ldapParam.setUseSamAccountName(useSamInput.yes());
+                }
+
+                String accountType = !ldapParam.isUseSamAccountName() ? "Common Name: " : "Sam Account Name: ";
+                StringInput ldapGroupInput = new StringInput(accountType);
+                //Allow empty name to return all groups
+                ldapGroupInput.setDefaultValue("");
+                InstallUtil.ask(scanner, ldapGroupInput);
+                ldapParam.setGroupSearchFilter(InstallUtil.getLdapGroupSearchFilter(ldapParam, ldapGroupInput.getValue()));
+
+                StringInput ldapSearchBaseInput = new StringInput("LDAP search base: ");
+                InstallUtil.ask(scanner, ldapSearchBaseInput);
+                ldapParam.setGroupSearchBase(ldapSearchBaseInput.getValue());
+
+                connector.searchGroup(ldapParam);
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        InstallUtil.output("This program verifies connectivity of Database server/LDAP server");
+
+        Scanner scanner = new Scanner(System.in);
+        Connector c = new Connector(scanner);
+        c.execute();
+        scanner.close();
+    }
 }

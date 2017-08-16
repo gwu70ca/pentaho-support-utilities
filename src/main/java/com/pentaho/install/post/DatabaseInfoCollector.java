@@ -165,7 +165,7 @@ public class DatabaseInfoCollector extends InstallAction {
 		StringBuilder buf = new StringBuilder("\n\n");
 		for (Map.Entry<String, DBInstance> entry : dbInstanceMap.entrySet()) {
 			buf.append(entry.getValue().toString());
-			buf.append(shortBar());
+			buf.append(InstallUtil.shortBar());
 		}
 		buf.append("\n\n");
 		return buf.toString();
