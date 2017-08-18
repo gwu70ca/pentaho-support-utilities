@@ -5,8 +5,6 @@ import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.db.Dialect;
 
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.sql.*;
 import java.util.Properties;
 
@@ -23,6 +21,7 @@ public class JDBCConnector {
         System.out.println("  -N, --name          Database name");
         System.out.println("  -T, --type          Database vendor [mysql|postgresql|sqlserver|oracle]");
         System.out.println("  -I, --windows       Use Microsoft Windows Integration Authentication");
+        System.out.println("  -J, --jtds          Use jDTS driver for Microsoft SQL server");
         System.out.println("");
         System.out.println("examples:");
         System.out.println("  1. Test connection to PostgreSQL database quartz on localhost");
@@ -38,7 +37,7 @@ public class JDBCConnector {
 
     public static void main(String[] args) {
         String dbHost = null, dbPort = null, dbName = null, dbUser = null, dbPass = null, dbType = null;
-        boolean winAuth = false;
+        boolean winAuth = false, jtds = false;
 
         if (args.length == 0) {
             usage();
@@ -60,6 +59,8 @@ public class JDBCConnector {
                         dbType = args[++i];
                     } else if (args[i].equals("-I") || args[i].equals("--windows")) {
                         winAuth = true;
+                    } else if (args[i].equals("-J") || args[i].equals("--jtds")) {
+                        jtds = true;
                     } else if (args[i].equals("-D") || args[i].equals("--debug")) {
                         DEBUG = true;
                     }
@@ -73,6 +74,8 @@ public class JDBCConnector {
         DBInstance dbInstance = new DBInstance(dbName, dbUser, dbPass);
         dbInstance.setHost(dbHost);
         dbInstance.setPort(dbPort);
+        dbInstance.setWinAuth(winAuth);
+        dbInstance.setJtds(jtds);
 
         DBParam.DB databaseType;
         if (dbType == null || (databaseType = guessDbType(dbType)) == null) {
@@ -89,12 +92,6 @@ public class JDBCConnector {
 
         if (DEBUG) {
             System.out.println(dbInstance);
-        }
-
-        ClassLoader cl = ClassLoader.getSystemClassLoader();
-        URL[] urls = ((URLClassLoader) cl).getURLs();
-        for (URL url : urls) {
-            System.out.println(url.getFile());
         }
 
         test(dbInstance);
@@ -208,17 +205,18 @@ public class JDBCConnector {
 
         Dialect dialect = InstallUtil.createDialect(dbInstance);
         String url = dialect.getJdbcUrl(dbInstance, dbInstance.getName() == null || dbInstance.getName().length() == 0);
+        System.out.println("jdbc url: " + url);
+
+        boolean requiredUsernameAndPassword = !dbInstance.isWinAuth() || dbInstance.isJtds() && !InstallUtil.isWindows();
+
         Properties connectionProps = new Properties();
-        if (dbInstance.isWinAuth() && DBParam.DB.Sqlserver.equals(dbInstance.getType())) {
-            url += ";integratedSecurity=true";
-        } else {
+        if (requiredUsernameAndPassword) {
             connectionProps.put("user", dbInstance.getUsername());
             connectionProps.put("password", dbInstance.getPassword());
         }
-        System.out.println(url);
 
         System.out.println("Connecting to " + dbInstance.getHost() + "@" + dbInstance.getPort() + " ..... ");
-        if (!dbInstance.isWinAuth()) {
+        if (requiredUsernameAndPassword) {
             conn = DriverManager.getConnection(url, connectionProps);
         } else {
             conn = DriverManager.getConnection(url);

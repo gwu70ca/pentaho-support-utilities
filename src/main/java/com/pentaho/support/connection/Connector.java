@@ -8,10 +8,11 @@ import com.pentaho.install.LDAPParam;
 import com.pentaho.install.LDAPParam.LDAP;
 import com.pentaho.install.input.*;
 
+import java.net.InetAddress;
 import java.util.Scanner;
 
-import static com.pentaho.install.InstallUtil.NEW_LINE;
 import static com.pentaho.install.InstallUtil.EXIT;
+import static com.pentaho.install.InstallUtil.NEW_LINE;
 
 public class Connector {
     Scanner scanner;
@@ -86,56 +87,77 @@ public class Connector {
         System.out.println(dbType);
 
         String defaultAdminUser = DBParam.dbDefaultAdminMap.get(dbType);
-        DBInstance dbParam = new DBInstance("", defaultAdminUser, "");
-        dbParam.setType(dbType);
+        DBInstance dbInstance = new DBInstance("", defaultAdminUser, "");
+        dbInstance.setType(dbType);
 
-        boolean winAuth = false;
+        StringInput dbHostInput = new StringInput(String.format("Database hostname or IP address [%s]: ", dbInstance.getHost()));
+        dbHostInput.setDefaultValue(dbInstance.getHost());
+        InstallUtil.ask(scanner, dbHostInput);
+        dbInstance.setHost(dbHostInput.getValue());
+
+        IntegerInput dbPortInput = new IntegerInput("Database port [" + dbInstance.getPort() + "]: ");
+        dbPortInput.setDefaultValue(dbInstance.getPort());
+        InstallUtil.ask(scanner, dbPortInput);
+        dbInstance.setPort(dbPortInput.getValue());
+
+        boolean winAuth = false, useJtds = false, needUsernameAndPassword = false;
+        String domain = "";
         if (DB.Sqlserver.equals(dbType)) {
-            BooleanInput wiaInput = new BooleanInput("Do you want to use Microsoft Windows Integration Authentication [y/n]? ");
+            BooleanInput jtdsInput = new BooleanInput("Do you want to use jDTS driver [y/n]? ");
+            InstallUtil.ask(scanner, jtdsInput);
+            useJtds = jtdsInput.yes();
+            dbInstance.setJtds(useJtds);
+
+            BooleanInput wiaInput = new BooleanInput("Do you want to use Integrated Windows Authentication [y/n]? ");
             InstallUtil.ask(scanner, wiaInput);
             winAuth = wiaInput.yes();
-            dbParam.setWinAuth(winAuth);
+            dbInstance.setWinAuth(winAuth);
+
+            if (useJtds && wiaInput.yes()) {
+                try {
+                    domain = InetAddress.getLocalHost().getCanonicalHostName();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                StringInput domainInput = new StringInput("What is the domain name? ");
+                domainInput.setDefaultValue(domain);
+                InstallUtil.ask(scanner, domainInput);
+                dbInstance.setDomain(domainInput.getValue());
+            }
+
+            //Non Windows OS still needs username/password
+            needUsernameAndPassword = !InstallUtil.isWindows();
         }
 
-        StringInput dbHostInput = new StringInput(String.format("Database hostname or IP address [%s]: ", dbParam.getHost()));
-        dbHostInput.setDefaultValue(dbParam.getHost());
-        InstallUtil.ask(scanner, dbHostInput);
-        dbParam.setHost(dbHostInput.getValue());
-
-        IntegerInput dbPortInput = new IntegerInput("Database port [" + dbParam.getPort() + "]: ");
-        dbPortInput.setDefaultValue(dbParam.getPort());
-        InstallUtil.ask(scanner, dbPortInput);
-        dbParam.setPort(dbPortInput.getValue());
-
-        if (!winAuth) {
+        if (!winAuth || needUsernameAndPassword) {
             StringInput userInput = new StringInput("Database username [" + defaultAdminUser + "]: ");
             userInput.setDefaultValue(defaultAdminUser);
             InstallUtil.ask(scanner, userInput);
-            dbParam.setUsername(userInput.getValue());
+            dbInstance.setUsername(userInput.getValue());
 
             StringInput passwordInput = new StringInput("Database password: ");
             InstallUtil.ask(scanner, passwordInput);
-            dbParam.setPassword(passwordInput.getValue());
+            dbInstance.setPassword(passwordInput.getValue());
         }
 
         if (!dbType.equals(DB.Orcl)) {
-            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dbParam.getType());
+            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dbInstance.getType());
             dbNameInput.setDefaultValue("");
             InstallUtil.ask(scanner, dbNameInput);
 
-            dbParam.setName(dbNameInput.getValue());
+            dbInstance.setName(dbNameInput.getValue());
         }
 
-        System.out.println(dbParam);
+        System.out.println(dbInstance);
 
         JDBCConnector connector = new JDBCConnector();
-        if (connector.test(dbParam)) {
-            BooleanInput input = new BooleanInput("Do you want to run a SQL query, [n/y]? ");
+        if (connector.test(dbInstance)) {
+            BooleanInput input = new BooleanInput("Do you want to run a SQL query, [y/n]? ");
             InstallUtil.ask(scanner, input);
             if (input.yes()) {
                 StringInput sqlInput = new StringInput("Input your SQL: \n");
                 InstallUtil.ask(scanner, sqlInput);
-                connector.executeSql(dbParam, sqlInput.getValue());
+                connector.executeSql(dbInstance, sqlInput.getValue());
             }
         }
     }

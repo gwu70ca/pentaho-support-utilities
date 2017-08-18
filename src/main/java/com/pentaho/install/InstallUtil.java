@@ -81,6 +81,10 @@ public class InstallUtil {
         return dbInstance.getType().equals(DB.Orcl);
     }
 
+    public static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("windows");
+    }
+
     public static String getLdapUserSearchFilter(LDAPParam param, String accountName) {
         String searchFilter = LDAPParam.AHACHEDS_USER_SEARCH_FILTER_CN;
         if (LDAPParam.LDAP.MSAD.equals(param.getType())) {
@@ -170,4 +174,5 @@ public class InstallUtil {
         }
         return d;
     }
+
 }

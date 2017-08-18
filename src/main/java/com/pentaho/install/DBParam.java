@@ -91,8 +91,7 @@ public class DBParam {
 	protected String jdbcPrefix;
 	protected String host = "localhost";
 	protected String port = "";
-	protected boolean winAuth;
-	
+
 	public DBParam() {
 	}
 	
@@ -145,14 +144,6 @@ public class DBParam {
 
 	public void setAdminPassword(String adminPassword) {
 		this.adminPassword = adminPassword;
-	}
-
-	public boolean isWinAuth() {
-		return winAuth;
-	}
-
-	public void setWinAuth(boolean winAuth) {
-		this.winAuth = winAuth;
 	}
 
 	public String toString() {

@@ -10,6 +10,9 @@ public class DBInstance extends DBParam {
     private String defaultPassword;
     private String resourceName;
     private boolean customed = false;
+    private boolean winAuth;
+    private boolean jtds;
+    private String domain;
 
     public DBInstance(String name, String username, String password) {
         this.name = this.defaultName = name;
@@ -97,6 +100,30 @@ public class DBInstance extends DBParam {
 
     public void setDefaultPassword(String defaultPassword) {
         this.defaultPassword = defaultPassword;
+    }
+
+    public boolean isWinAuth() {
+        return winAuth;
+    }
+
+    public void setWinAuth(boolean winAuth) {
+        this.winAuth = winAuth;
+    }
+
+    public boolean isJtds() {
+        return jtds;
+    }
+
+    public void setJtds(boolean jtds) {
+        this.jtds = jtds;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     public String toString() {

@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Sqlserver implements Dialect {
+    static String JTDS_PREFIX = "jdbc:jtds:sqlserver://";
+
     public String promptDbName(String dbName, DBInstance dbInstance, Scanner scanner) {
         if (!dbName.equals(DBParam.DB_NAME_PENT_OP_MART)) {
             //no need to change pentaho_operations_mart's name
@@ -80,7 +82,20 @@ public class Sqlserver implements Dialect {
         if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)) {
             dbName = DBParam.DB_NAME_HIBERNATE;
         }
-        return dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort()
-                + (isAdmin ? "" : ";DatabaseName=" + dbName);
+
+        String url;
+        if (dbInstance.isJtds()) {
+            url = JTDS_PREFIX + dbInstance.getHost() + ":" + dbInstance.getPort() + (isAdmin ? "" : ";DatabaseName=" + dbName);
+            if (dbInstance.isWinAuth()) {
+                url += ";domain=" + dbInstance.getDomain() + ";useNTLMv2=true";
+            }
+        } else {
+            url = dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + (isAdmin ? "" : ";DatabaseName=" + dbName);
+            if (dbInstance.isWinAuth()) {
+                url += ";integratedSecurity=true";
+            }
+        }
+
+        return url;
     }
 }
