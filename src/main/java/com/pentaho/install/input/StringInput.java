@@ -19,7 +19,7 @@ public class StringInput extends BaseInput {
 	public String validate() {
 		String msg = message;
 		try {
-			String str = (String)value;
+			String str = value;
 			
 			if (str == null || str.isEmpty()) {
 				return "Input can not be blank";

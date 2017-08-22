@@ -1,6 +1,7 @@
 package com.pentaho.install;
 
 import com.pentaho.install.DBParam.DB;
+import com.pentaho.install.db.Dialect;
 import com.pentaho.install.input.BooleanInput;
 import com.pentaho.install.post.*;
 
@@ -70,10 +71,12 @@ public class InstallParamCollector {
         InstallUtil.output("Database type: " + installParam.dbType);
         InstallUtil.output("\n");
 
+        Dialect dialect = InstallUtil.createDialect(installParam.dbType);
+
         //Need database type to verify the "data" directory
         boolean verified = false;
         try {
-            if (!verifyDirectoryStructure(installParam)) {
+            if (!verifyDirectoryStructure(installParam, dialect)) {
                 BooleanInput askToContinue = new BooleanInput("Some of the directories are not valid, do you want to continue [y/n]? ");
                 InstallUtil.ask(scanner, askToContinue);
                 if (!askToContinue.yes()) {
@@ -102,10 +105,10 @@ public class InstallParamCollector {
         return installParam;
     }
 
-    private boolean verifyDirectoryStructure(InstallParam installParam) throws Exception {
+    private boolean verifyDirectoryStructure(InstallParam installParam, Dialect dialect) throws Exception {
         boolean verified = false;
         String serverRootDir = InstallUtil.getServerRootDir(installParam);
-        if (!canReadAndWrite(new File(serverRootDir)) || !canReadAndWrite(new File(serverRootDir + "/data/" + DBParam.dbDirMap.get(installParam.dbType)))) {
+        if (!canReadAndWrite(new File(serverRootDir)) || !canReadAndWrite(new File(serverRootDir + "/data/" + dialect.getScriptDirName()))) {
             InstallUtil.output("Directory [" + serverRootDir + "] is invalid. Make sure the directory exists and current user has read/write permission.");
         } else {
             if (InstallUtil.isBA(installParam.pentahoServerType)) {

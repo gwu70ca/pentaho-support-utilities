@@ -1,11 +1,11 @@
 package com.pentaho.support.connection;
 
 import com.pentaho.install.DBInstance;
-import com.pentaho.install.DBParam;
 import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.LDAPParam;
 import com.pentaho.install.LDAPParam.LDAP;
+import com.pentaho.install.db.Dialect;
 import com.pentaho.install.input.*;
 
 import java.net.InetAddress;
@@ -86,7 +86,9 @@ public class Connector {
         DB dbType = DB.values()[Integer.parseInt(dbTypeInput.getValue()) - 1];
         System.out.println(dbType);
 
-        String defaultAdminUser = DBParam.dbDefaultAdminMap.get(dbType);
+        Dialect dialect = InstallUtil.createDialect(dbType);
+
+        String defaultAdminUser = dialect.getDefaultAdmin();
         DBInstance dbInstance = new DBInstance("", defaultAdminUser, "");
         dbInstance.setType(dbType);
 
@@ -141,7 +143,7 @@ public class Connector {
         }
 
         if (!dbType.equals(DB.Orcl)) {
-            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dbInstance.getType());
+            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", ""), dialect.getDbNameLength());
             dbNameInput.setDefaultValue("");
             InstallUtil.ask(scanner, dbNameInput);
 

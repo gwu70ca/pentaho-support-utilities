@@ -30,16 +30,10 @@ public class CacheCleaner {
             }
         }
 
-        File dir = new File(dirName);
-        if (!dir.exists() || !dir.isDirectory() || !dir.canRead() || !dir.canWrite()) {
-            System.out.println("Directory is invalid. Make sure it exists, current user has read/write permission on it.");
-            System.exit(0);
-        }
-
         Scanner scanner = new Scanner(System.in);
 
         CacheCleaner cc = new CacheCleaner(scanner);
-        cc.clean(dir.getAbsolutePath());
+        cc.clean(dirName);
 
         scanner.close();
     }
@@ -51,6 +45,12 @@ public class CacheCleaner {
     }
 
     public void clean(String dirName) {
+        File dir = new File(dirName);
+        if (!dir.exists() || !dir.isDirectory() || !dir.canRead() || !dir.canWrite()) {
+            System.out.println("Directory is invalid. Make sure it exists, current user has read/write permission on it.");
+            return;
+        }
+
         delete(Paths.get(dirName + "/server/pentaho-server/pentaho-solutions/system/jackrabbit/repository"));
         delete(Paths.get(dirName + "/server/pentaho-server/pentaho-solutions/system/karaf/cache"));
         delete(Paths.get(dirName + "/server/pentaho-server/pentaho-solutions/system/karaf/instances"));

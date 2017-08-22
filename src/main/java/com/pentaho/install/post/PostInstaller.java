@@ -5,6 +5,7 @@ import com.pentaho.install.InstallParamCollector;
 import com.pentaho.install.InstallUtil;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -20,6 +21,8 @@ import java.util.Scanner;
 public class PostInstaller {
 	public static boolean DEBUG = false;
 	public static boolean SILENT = false;
+
+	public static String TIMESTAMP_SUFFIX = String.valueOf(new Date().getTime());
 	
 	String installCfgFile;
 	Scanner scanner;
@@ -40,18 +43,18 @@ public class PostInstaller {
 			}
 		}
 
+		//Collect installation parameters
 		InstallParamCollector paramCollector = new InstallParamCollector(this.installCfgFile,scanner);
 		InstallParam installParam = paramCollector.execute();
 		
 		if (!installParam.manualCreateDb) {
-			//User may choose to manually create database
+			//User may choose to manually create database with different database name/username/password
 			DatabaseCreator dbCreator = new DatabaseCreator(installParam, scanner);
 			dbCreator.execute();
 		}
 		
 		//A lot XMLs, really
 		ConfigUpdater cfgUpdator = new ConfigUpdater(installParam, scanner);
-		cfgUpdator.installParam = installParam;
 		cfgUpdator.execute();
 		
 		InstallUtil.newLine();

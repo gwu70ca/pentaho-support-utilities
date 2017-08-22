@@ -13,7 +13,7 @@ public class Psql implements Dialect {
     public String promptDbName(String dbName, DBInstance dbInstance, Scanner scanner) {
         if (!dbName.equals(DBParam.DB_NAME_PENT_OP_MART)) {
             //no need to change pentaho_operations_mart's name
-            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), dbInstance.getType());
+            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), this.getDbNameLength());
             dbNameInput.setDefaultValue(dbInstance.getName());
             InstallUtil.ask(scanner, dbNameInput);
 
@@ -72,12 +72,53 @@ public class Psql implements Dialect {
         return "cl_j_";
     }
 
+    public String getJdbcPrefix() {
+        return "jdbc:postgresql://";
+    }
+
     public String getJdbcDriverClass() {
         return "org.postgresql.Driver";
     }
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
+        String dbName = dbInstance.getName();
+        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName) || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)) {
+            dbName = DBParam.DB_NAME_HIBERNATE;
+        }
+
         return dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/"
-                + (isAdmin ? "" : dbInstance.getName());
+                + (isAdmin ? "" : dbName);
+    }
+
+    public String getDefaultPort() {
+        return "5432";
+    }
+
+    public String getDefaultAdmin() {
+        return "system";
+    }
+
+    public String getQuartzDriverDelegateClass() {
+        return "org.quartz.impl.jdbcjobstore.PsqlDelegatee";
+    }
+
+    public String getHibernateConfigFile() {
+        return "postgresql.hibernate.cfg.xml";
+    }
+
+    public String getAuditDirName() {
+        return "postgresql";
+    }
+
+    public String getScriptDirName() {
+        return "postgresql";
+    }
+
+    public int getDbNameLength() {
+        return 63;
+    }
+
+    public int getDbUserNameLength() {
+        return 63;
     }
 }

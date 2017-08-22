@@ -15,26 +15,27 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 
 public class XMLGenerator {
-    protected boolean createXml(PentahoXMLConfig conf, String file, String msg) {
+    protected boolean createXml(PentahoXMLConfig conf, Writer writer) {
         boolean succeeded = false;
 
         try {
             XMLOutputFactory outputFactory = XMLOutputFactory.newFactory();
             StringWriter stringWriter = new StringWriter();
-            XMLStreamWriter writer = outputFactory.createXMLStreamWriter(stringWriter);
+            XMLStreamWriter streamWriter = outputFactory.createXMLStreamWriter(stringWriter);
 
             JAXBContext context = JAXBContext.newInstance(conf.getClass());
             Marshaller marshaller = context.createMarshaller();
             //marshaller.setListener(new TomcatMarshallerListener(writer));
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
             marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-            marshaller.marshal(conf, writer);
-            writer.close();
+            marshaller.marshal(conf, streamWriter);
+            streamWriter.close();
 
             String xmlString = stringWriter.toString();
             DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -48,13 +49,7 @@ public class XMLGenerator {
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
             DOMSource source = new DOMSource(doc);
-            StreamResult result;
-            if ("true".equals(System.getProperty("local"))) {
-                result = new StreamResult(System.out);
-            } else {
-                InstallUtil.output("\n" + msg + file);
-                result = new StreamResult(new File(file));
-            }
+            StreamResult result = new StreamResult(writer);
 
             transformer.transform(source, result);
             succeeded = true;
@@ -62,5 +57,15 @@ public class XMLGenerator {
             InstallUtil.error(ex.getMessage());
         }
         return succeeded;
+    }
+
+    protected void close(Writer writer) {
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException ioe) {
+                InstallUtil.error(ioe.getMessage());
+            }
+        }
     }
 }

@@ -16,8 +16,22 @@ public interface Dialect {
     String getJournalClass(PentahoServerParam.SERVER serverType);
     String getRevision();
     String getSchemaObjectPrefix();
+    String getJdbcPrefix();
     String getJdbcDriverClass();
     String getJdbcUrl(DBInstance instance, boolean isAdmin);
+    String getQuartzDriverDelegateClass();
+    String getHibernateConfigFile();
+    String getAuditDirName();
+    String getDefaultPort();
+    String getDefaultAdmin();
+    String getScriptDirName();
+    int getDbNameLength();
+    int getDbUserNameLength();
+
+
+    default String getValidationQuery() {
+        return "select 1";
+    }
 
     default boolean isConnect(String sql) {
         return false;
@@ -31,6 +45,5 @@ public interface Dialect {
         return sql.endsWith(";");
     }
 
-    default void setDefaultUsername(String dbName, DBInstance dbInstance, PentahoServerParam.SERVER serverType) {
-    }
+    default void setDefaultUsername(String dbName, DBInstance dbInstance, PentahoServerParam.SERVER serverType) {}
 }

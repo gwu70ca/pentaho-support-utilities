@@ -1,6 +1,7 @@
 package com.pentaho.install;
 
-import java.util.HashMap;
+import com.pentaho.install.db.Dialect;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -21,76 +22,30 @@ public class DBParam {
 	public static String DB_NAME_JACKRABBIT = "jackrabbit";
 	public static String DB_NAME_QUARTZ = "quartz";
 	public static String DB_NAME_PENT_OP_MART = "pentaho_operations_mart";
+	public static String DB_NAME_PDI_OP_MART = "pdi_operations_mart";
 
     public static String DB_NAME_HIBERNATE_DI = "di_hibernate";
     public static String DB_NAME_JACKRABBIT_DI = "di_jackrabbit";
     public static String DB_NAME_QUARTZ_DI = "di_quartz";
 
-	public static Map<DB, String> JDBC_PREFIX;
-	public static Map<DB, String> DB_PORT;
-	public static Map<DB, Integer> DB_NAME_LENGTH;
-	public static Map<DB, Integer> DB_USERNAME_LENGTH;
-	public static Map<DB, String> dbDefaultAdminMap;
-
-    public static Map<DB, String> dbDirMap;
-
-    static {
-        dbDirMap = new HashMap<>();
-        dbDirMap.put(DB.Mysql, "mysql5");
-        dbDirMap.put(DB.Psql, "postgresql");
-        dbDirMap.put(DB.Orcl, "oracle10g");
-        dbDirMap.put(DB.Sqlserver, "sqlserver");
-
-		JDBC_PREFIX = new HashMap<>();
-		JDBC_PREFIX.put(DB.Mysql, "jdbc:mysql://");
-		JDBC_PREFIX.put(DB.Psql, "jdbc:postgresql://");
-		JDBC_PREFIX.put(DB.Orcl, "jdbc:oracle:thin:@");
-		JDBC_PREFIX.put(DB.Sqlserver, "jdbc:sqlserver://");
-		
-		dbDefaultAdminMap = new HashMap<>();
-		dbDefaultAdminMap.put(DB.Mysql, "root");
-		dbDefaultAdminMap.put(DB.Psql, "postgres");
-		dbDefaultAdminMap.put(DB.Orcl, "system");
-		dbDefaultAdminMap.put(DB.Sqlserver, "sa");
-		
-		DB_PORT = new HashMap<>();
-		DB_PORT.put(DB.Mysql, "3306");
-		DB_PORT.put(DB.Psql, "5432");
-		DB_PORT.put(DB.Orcl, "1521");
-		DB_PORT.put(DB.Sqlserver, "1433");
-		
-		DB_NAME_LENGTH = new HashMap<>();
-		DB_NAME_LENGTH.put(DB.Sqlserver, 128);
-		DB_NAME_LENGTH.put(DB.Mysql, 64);
-		DB_NAME_LENGTH.put(DB.Orcl, 8);
-		DB_NAME_LENGTH.put(DB.Psql, 63);
-		
-		DB_USERNAME_LENGTH = new HashMap<>();
-		DB_USERNAME_LENGTH.put(DB.Sqlserver, 128);
-		DB_USERNAME_LENGTH.put(DB.Mysql, 16);
-		DB_USERNAME_LENGTH.put(DB.Orcl, 30);
-		DB_USERNAME_LENGTH.put(DB.Psql, 63);
-	}
-
 	public static Map<String, DBInstance> initDbInstances(DB dbType) {
 		Map<String, DBInstance> dbInstanceMap = new LinkedHashMap<>();
         dbInstanceMap.put(DBParam.DB_NAME_HIBERNATE, new DBInstance(DBParam.DB_NAME_HIBERNATE, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_HIBERNATE));
-        dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, "jcr_user", "password", dbType, DBParam.RESOURCE_NAME_AUDIT));
+        dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, "jcr_user", "password", dbType, ""));
         dbInstanceMap.put(DBParam.DB_NAME_QUARTZ, new DBInstance(DBParam.DB_NAME_QUARTZ, "pentaho_user", "password", dbType, DBParam.RESOURCE_NAME_QUARTZ));
         dbInstanceMap.put(DBParam.DB_NAME_PENT_OP_MART, new DBInstance(DBParam.DB_NAME_PENT_OP_MART, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_PENTAHO_OPERATIONS_MART));
+        dbInstanceMap.put(DBParam.DB_NAME_PDI_OP_MART, new DBInstance(DBParam.DB_NAME_PDI_OP_MART, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_PDI_OPERATIONS_MART));
 		
 		return dbInstanceMap;
 	}
 	
-	public static String getValidationQuery(DB dbType) {
-		return dbType == DB.Orcl ? "select 1 from dual" : "select 1";
-	}
-	
 	protected String adminUser, adminPassword;
-	protected DB type = DBParam.DB.Psql;
+	protected DB type;
 	protected String jdbcPrefix;
 	protected String host = "localhost";
 	protected String port = "";
+
+	Dialect dialect;
 
 	public DBParam() {
 	}
@@ -101,13 +56,14 @@ public class DBParam {
 
 	public void setType(DB type) {
 		this.type = type;
+        this.dialect = InstallUtil.createDialect(this.type);
 
 		initDbProperty();
 	}
 
 	protected void initDbProperty() {
-        this.jdbcPrefix = JDBC_PREFIX.get(type);
-        this.port = DB_PORT.get(type);
+        this.jdbcPrefix = dialect.getJdbcPrefix();
+        this.port = dialect.getDefaultPort();
     }
 
 	public String getJdbcPrefix() {

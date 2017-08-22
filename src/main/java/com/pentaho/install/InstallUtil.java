@@ -1,8 +1,12 @@
 package com.pentaho.install;
 
+import com.pentaho.install.action.CopyFileAction;
 import com.pentaho.install.db.*;
+import com.pentaho.install.input.BooleanInput;
+import com.pentaho.install.post.PostInstaller;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 import static com.pentaho.install.DBParam.DB;
@@ -175,4 +179,24 @@ public class InstallUtil {
         return d;
     }
 
+    public static boolean backup(File original, Scanner scanner) {
+        boolean success = false;
+
+        File backup = new File(original.getAbsolutePath() + "." + PostInstaller.TIMESTAMP_SUFFIX);
+        CopyFileAction action = new CopyFileAction(original, backup);
+        try {
+            action.execute();
+            success = true;
+        } catch (IOException ex) {
+            InstallUtil.output("\nFailed to backup the original file: " + original.getAbsolutePath());
+        }
+
+        if (!success) {
+            BooleanInput askToContinue = new BooleanInput("Do you want to continue [y/n]? ");
+            InstallUtil.ask(scanner, askToContinue);
+            success = askToContinue.yes();
+        }
+
+        return success;
+    }
 }

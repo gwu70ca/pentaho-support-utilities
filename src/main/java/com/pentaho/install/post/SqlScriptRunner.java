@@ -59,13 +59,13 @@ public class SqlScriptRunner {
         } catch (SQLException sqle) {
             String message = sqle.getMessage();
             if (PostInstaller.DEBUG) {
-                System.out.println(message);
+                InstallUtil.output(message);
             }
 
             if (message.indexOf("No suitable driver") >= 0) {
-                System.out.println("Installer could not find the JDBC driver.");
+                InstallUtil.output("Installer could not find the JDBC driver.");
             } else {
-                System.out.println("Could not connect to database.");
+                InstallUtil.output("Could not connect to database.");
             }
             return;
         } finally {
@@ -134,7 +134,7 @@ public class SqlScriptRunner {
                     for (String sql : sqlList) {
                         Logger.log("\tSQL-->" + sql);
                         if (DRYRUN && !Logger.isDebug()) {
-                            System.out.println("DRYRUN: " + sql);
+                            InstallUtil.output("DRYRUN: " + sql);
                         }
 
                         try {

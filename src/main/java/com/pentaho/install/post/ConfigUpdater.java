@@ -1,7 +1,6 @@
 package com.pentaho.install.post;
 
 import com.pentaho.install.*;
-import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.action.CopyFileAction;
 import com.pentaho.install.db.Dialect;
 import com.pentaho.install.input.BooleanInput;
@@ -13,45 +12,18 @@ import com.pentaho.install.post.tomcat.TomcatXMLGenerator;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public class ConfigUpdater extends InstallAction {
     private Scanner scanner;
-
-    private static Map<DB, String> quartzMap;
-    private static Map<DB, String> hibernateMap;
-    private static Map<DB, String> auditMap;
-
-    static {
-        quartzMap = new HashMap<>();
-        quartzMap.put(DB.Mysql, "org.quartz.impl.jdbcjobstore.StdJDBCDelegate");
-        quartzMap.put(DB.Psql, "org.quartz.impl.jdbcjobstore.PsqlDelegate");
-        quartzMap.put(DB.Orcl, "org.quartz.impl.jdbcjobstore.oracle.OrclDelegate");
-        quartzMap.put(DB.Sqlserver, "org.quartz.impl.jdbcjobstore.MSSQLDelegate");
-
-        hibernateMap = new HashMap<>();
-        hibernateMap.put(DB.Mysql, "mysql5.hibernate.cfg.xml");
-        hibernateMap.put(DB.Psql, "postgresql.hibernate.cfg.xml");
-        hibernateMap.put(DB.Orcl, "oracle10g.hibernate.cfg.xml");
-        hibernateMap.put(DB.Sqlserver, "sqlserver.hibernate.cfg.xml");
-
-        auditMap = new HashMap<>();
-        auditMap.put(DB.Mysql, "mysql5");
-        auditMap.put(DB.Psql, "postgresql");
-        auditMap.put(DB.Orcl, "oracle10g");
-        auditMap.put(DB.Sqlserver, "sqlserver");
-    }
-
-    InstallParam installParam;
+    private InstallParam installParam;
     private String serverDirName;
 
     public ConfigUpdater(InstallParam installParam, Scanner scanner) throws Exception {
         this.installParam = installParam;
-        serverDirName = PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType);
-
         this.scanner = scanner;
+
+        this.serverDirName = PentahoServerParam.getServerDirectoryName(installParam.pentahoServerType);
     }
 
     private String prompt() {
@@ -84,40 +56,50 @@ public class ConfigUpdater extends InstallAction {
             } while (true);
         }
 
-        if (InstallUtil.isBA(installParam.pentahoServerType)) {
-            updateBAServer();
-        } else if (InstallUtil.isDI(installParam.pentahoServerType)) {
-            updateDIServer();
-        } else if (InstallUtil.isHYBRID(installParam.pentahoServerType)) {
-            updateBAServer();
-        }
+        update();
 
         InstallUtil.output("All files were updated.");
         return new ActionResult("");
     }
 
-    private void updateBAServer() throws Exception {
+    private void update() throws Exception {
+        Dialect dialect = InstallUtil.createDialect(installParam.dbType);
+
         //update quartz
-        if (!updateQuartz()) {
+        if (!updateQuartz(dialect)) {
             if (PostInstaller.SILENT) {
             } else {
                 BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
                 InstallUtil.ask(scanner, askForContinue);
                 if (!askForContinue.yes()) {
-                    System.exit(0);
+                    return;
                 }
             }
         }
         InstallUtil.output("\t[done]");
 
         //update hibernate
-        if (!updateHibernate()) {
+        if (!updateHibernate(dialect)) {
             if (PostInstaller.SILENT) {
             } else {
                 BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
                 InstallUtil.ask(scanner, askForContinue);
                 if (!askForContinue.yes()) {
-                    System.exit(0);
+                    return;
+                }
+            }
+        }
+        InstallUtil.output("\t[done]");
+
+        //update audit
+        if (!updateAudit(dialect)) {
+            if (PostInstaller.SILENT) {
+
+            } else {
+                BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
+                InstallUtil.ask(scanner, askForContinue);
+                if (!askForContinue.yes()) {
+                    return;
                 }
             }
         }
@@ -130,21 +112,7 @@ public class ConfigUpdater extends InstallAction {
                 BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
                 InstallUtil.ask(scanner, askForContinue);
                 if (!askForContinue.yes()) {
-                    System.exit(0);
-                }
-            }
-        }
-        InstallUtil.output("\t[done]");
-
-        //update audit
-        if (!updateAudit()) {
-            if (PostInstaller.SILENT) {
-
-            } else {
-                BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
-                InstallUtil.ask(scanner, askForContinue);
-                if (!askForContinue.yes()) {
-                    System.exit(0);
+                    return;
                 }
             }
         }
@@ -183,7 +151,7 @@ public class ConfigUpdater extends InstallAction {
             installParam.appServerDir = tomcatDirInput.getValue();
         }
 
-        TomcatXMLGenerator gen = new TomcatXMLGenerator(installParam);
+        TomcatXMLGenerator gen = new TomcatXMLGenerator(installParam, scanner);
         boolean success = gen.createTomcatConfig();
 
         if (!success) {
@@ -232,77 +200,25 @@ public class ConfigUpdater extends InstallAction {
         }
     }
 
-    private void updateDIServer() throws Exception {
-        //update quartz
-        if (!updateQuartz()) {
-            if (PostInstaller.SILENT) {
-
-            } else {
-                BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
-                InstallUtil.ask(scanner, askForContinue);
-                if (!askForContinue.yes()) {
-                    System.exit(0);
-                }
-            }
-        }
-        InstallUtil.output("\t[done]");
-
-        //update hibernate
-        if (!updateHibernate()) {
-            if (PostInstaller.SILENT) {
-
-            } else {
-                BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
-                InstallUtil.ask(scanner, askForContinue);
-                if (!askForContinue.yes()) {
-                    System.exit(0);
-                }
-            }
-        }
-        InstallUtil.output("\t[done]");
-
-        //update audit
-        if (!updateAudit()) {
-            if (PostInstaller.SILENT) {
-
-            } else {
-                BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
-                InstallUtil.ask(scanner, askForContinue);
-                if (!askForContinue.yes()) {
-                    System.exit(0);
-                }
-            }
-        }
-        InstallUtil.output("\t[done]");
-
-        //update jackrabbit
-        if (!updateJackrabbit()) {
-            if (PostInstaller.SILENT) {
-
-            } else {
-                BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
-                InstallUtil.ask(scanner, askForContinue);
-                if (!askForContinue.yes()) {
-                    System.exit(0);
-                }
-            }
-        }
-        InstallUtil.output("\t[done]");
-
-        updateTomcat();
+    private boolean updateJackrabbit() {
+        JackrabbitXMLGenerator jxg = new JackrabbitXMLGenerator(installParam, scanner);
+        return jxg.createJackrabbitConfig();
     }
 
-    private boolean updateQuartz() {
-        boolean success = false;
-
+    private boolean updateQuartz(Dialect dialect) {
         String quartzDir = installParam.installDir + "/server/" + serverDirName + "/pentaho-solutions/system/quartz";
         quartzDir = quartzDir.replace('/', File.separatorChar);
-        File file = new File(quartzDir + File.separator + "quartz.properties");
-        InstallUtil.output("Updating quartz configuration file " + file.getAbsolutePath());
+        File original = new File(quartzDir + File.separator + "quartz.properties");
 
+        if (!InstallUtil.backup(original, scanner)) {
+            return false;
+        }
+
+        boolean success = false;
+        InstallUtil.output("Updating quartz configuration file " + original.getAbsolutePath());
         try {
             StringBuilder builder = new StringBuilder();
-            Scanner sc = new Scanner(file);
+            Scanner sc = new Scanner(original);
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 if (line.startsWith("#") || line.trim().length() == 0) {
@@ -310,7 +226,7 @@ public class ConfigUpdater extends InstallAction {
                     continue;
                 }
                 if (line.startsWith("org.quartz.jobStore.driverDelegateClass")) {
-                    line = "org.quartz.jobStore.driverDelegateClass = " + quartzMap.get(installParam.dbType);
+                    line = "org.quartz.jobStore.driverDelegateClass = " + dialect.getQuartzDriverDelegateClass();
                 } else if (line.startsWith("org.quartz.dataSource.myDS.jndiURL")) {
                     line = "org.quartz.dataSource.myDS.jndiURL = Quartz";
                 }
@@ -318,32 +234,35 @@ public class ConfigUpdater extends InstallAction {
             }
             sc.close();
 
-            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(original), StandardCharsets.UTF_8);
             writer.write(builder.toString());
             writer.close();
 
             success = true;
         } catch (FileNotFoundException e) {
-            InstallUtil.output("\nCould not find the file " + file.getAbsolutePath());
+            InstallUtil.output("\nCould not find the file " + original.getAbsolutePath());
         } catch (IOException ioe) {
-            InstallUtil.output("\nCould not write to the file " + file.getAbsolutePath());
+            InstallUtil.output("\nCould not write to the file " + original.getAbsolutePath());
         }
         return success;
     }
 
-    private boolean updateHibernate() {
-        boolean success = false;
-
+    private boolean updateHibernate(Dialect dialect) {
         String hibernateDir = installParam.installDir + "/server/" + serverDirName + "/pentaho-solutions/system/hibernate";
         hibernateDir = hibernateDir.replace('/', File.separatorChar);
-        String hibernateCfgFile = hibernateMap.get(installParam.dbType);
-        File file = new File(hibernateDir + File.separator + "hibernate-settings.xml");
-        InstallUtil.output("\nUpdating hibernate configuration file " + file.getAbsolutePath());
+        String hibernateCfgFile = dialect.getHibernateConfigFile();
+        File original = new File(hibernateDir + File.separator + "hibernate-settings.xml");
 
+        if (!InstallUtil.backup(original, scanner)) {
+            return false;
+        }
+
+        boolean success = false;
+        InstallUtil.output("\nUpdating hibernate configuration file " + original.getAbsolutePath());
         try {
             String STR = "<config-file>system/hibernate/";
             StringBuilder builder = new StringBuilder();
-            Scanner sc = new Scanner(file);
+            Scanner sc = new Scanner(original);
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 if (line.trim().startsWith(STR)) {
@@ -353,34 +272,39 @@ public class ConfigUpdater extends InstallAction {
             }
             sc.close();
 
-            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(original), StandardCharsets.UTF_8);
             writer.write(builder.toString());
             writer.close();
 
             success = true;
         } catch (FileNotFoundException e) {
-            InstallUtil.output("\nCould not find the file " + file.getAbsolutePath());
+            InstallUtil.output("\nCould not find the file " + original.getAbsolutePath());
         } catch (IOException ioe) {
-            InstallUtil.output("\nCould not write to the file " + file.getAbsolutePath());
+            InstallUtil.output("\nCould not write to the file " + original.getAbsolutePath());
         }
 
         if (!success) {
+            BooleanInput askToContinue = new BooleanInput("Do you want to continue [y/n]? ");
+            InstallUtil.ask(scanner, askToContinue);
+            if (!askToContinue.yes()) {
+                return false;
+            }
+        }
+
+        original = new File(hibernateDir + File.separator + hibernateCfgFile);
+        if (!InstallUtil.backup(original, scanner)) {
             return success;
         }
 
-        success = false;
-        file = new File(hibernateDir + File.separator + hibernateCfgFile);
-        InstallUtil.output("Updating hibernate configuration file " + file.getAbsolutePath());
-
+        InstallUtil.output("Updating hibernate configuration file " + original.getAbsolutePath());
         try {
             DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
-            Dialect dialect = InstallUtil.createDialect(hibernateDbInstance);
 
             String JDBC_STR = "<property name=\"connection.url\">";
             String USERNAME_STR = "<property name=\"connection.username\">";
             String PASSWORD_STR = "<property name=\"connection.password\">";
             StringBuilder builder = new StringBuilder();
-            Scanner sc = new Scanner(file);
+            Scanner sc = new Scanner(original);
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 if (line.trim().startsWith(JDBC_STR)) {
@@ -395,41 +319,39 @@ public class ConfigUpdater extends InstallAction {
             }
             sc.close();
 
-            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(original), StandardCharsets.UTF_8);
             writer.write(builder.toString());
             writer.close();
 
             success = true;
         } catch (FileNotFoundException e) {
-            InstallUtil.output("\nCould not find the file " + file.getAbsolutePath());
+            InstallUtil.output("\nCould not find the file " + original.getAbsolutePath());
         } catch (IOException ioe) {
-            InstallUtil.output("\nCould not write to the file " + file.getAbsolutePath());
+            InstallUtil.output("\nCould not write to the file " + original.getAbsolutePath());
         }
 
         return success;
     }
 
-    private boolean updateJackrabbit() {
-        JackrabbitXMLGenerator jxg = new JackrabbitXMLGenerator(installParam);
-        return jxg.createJackrabbitConfig();
-    }
-
-    private boolean updateAudit() {
-        boolean success = false;
-
+    private boolean updateAudit(Dialect dialect) {
         String auditDir = installParam.installDir + "/server/" + serverDirName + "/pentaho-solutions/system/dialects";
         auditDir = auditDir.replace('/', File.separatorChar);
         InstallUtil.output("\nCopying audit configuration file");
 
-        File source = new File(auditDir + File.separator + auditMap.get(installParam.dbType) + File.separator + "audit_sql.xml");
-        File target = new File(installParam.installDir + "/server/" + serverDirName + "/pentaho-solutions/system/audit_sql.xml");
-        CopyFileAction action = new CopyFileAction(source, target);
+        //backup the original file first
+        File original = new File(installParam.installDir + "/server/" + serverDirName + "/pentaho-solutions/system/audit_sql.xml");
+        if (!InstallUtil.backup(original, scanner)) {
+            return false;
+        }
 
+        boolean success = false;
+        File newAuditFile = new File(auditDir + File.separator + dialect.getAuditDirName() + File.separator + "audit_sql.xml");
+        CopyFileAction action = new CopyFileAction(newAuditFile, original);
         try {
             action.execute();
             success = true;
         } catch (IOException ex) {
-            InstallUtil.output("\nFailed to copy from \n\t" + source.getAbsolutePath() + "\n\tto" + target.getAbsolutePath());
+            InstallUtil.output("\nFailed to copy from \n\t" + newAuditFile.getAbsolutePath() + "\n\tto" + original.getAbsolutePath());
         }
 
         return success;

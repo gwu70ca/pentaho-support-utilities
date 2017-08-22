@@ -15,7 +15,7 @@ public class Sqlserver implements Dialect {
     public String promptDbName(String dbName, DBInstance dbInstance, Scanner scanner) {
         if (!dbName.equals(DBParam.DB_NAME_PENT_OP_MART)) {
             //no need to change pentaho_operations_mart's name
-            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), dbInstance.getType());
+            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), this.getDbNameLength());
             dbNameInput.setDefaultValue(dbInstance.getName());
             InstallUtil.ask(scanner, dbNameInput);
 
@@ -26,11 +26,16 @@ public class Sqlserver implements Dialect {
     }
 
     public String polish(String sql, DBInstance instance, Map<String, DBInstance> dbInstanceMap) {
-        String defaultDbName = instance.getDefaultName().equals(DBParam.DB_NAME_PENT_OP_MART) ? DBParam.DB_NAME_HIBERNATE : instance.getDefaultName();
-        sql = sql.replace(defaultDbName, instance.getName())
-                .replace(instance.getDefaultUsername(), instance.getUsername())
-                .replace(instance.getDefaultPassword(), instance.getPassword());
-
+        if (DBParam.DB_NAME_PENT_OP_MART.equals(instance.getDefaultName())) {
+            DBInstance hibernate = dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
+            sql = sql.replace(DBParam.DB_NAME_HIBERNATE, hibernate.getName())
+                    .replace(instance.getDefaultUsername(), hibernate.getUsername())
+                    .replace(instance.getDefaultPassword(), hibernate.getPassword());
+        } else {
+            sql = sql.replace(instance.getDefaultName(), instance.getName())
+                    .replace(instance.getDefaultUsername(), instance.getUsername())
+                    .replace(instance.getDefaultPassword(), instance.getPassword());
+        }
         return sql;
     }
 
@@ -73,13 +78,17 @@ public class Sqlserver implements Dialect {
         return "cl_j_";
     }
 
+    public String getJdbcPrefix() {
+        return "jdbc:sqlserver://";
+    }
+
     public String getJdbcDriverClass() {
         return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     }
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
         String dbName = dbInstance.getName();
-        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)) {
+        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName) || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)) {
             dbName = DBParam.DB_NAME_HIBERNATE;
         }
 
@@ -97,5 +106,37 @@ public class Sqlserver implements Dialect {
         }
 
         return url;
+    }
+
+    public String getDefaultPort() {
+        return "1433";
+    }
+
+    public String getDefaultAdmin() {
+        return "sa";
+    }
+
+    public String getQuartzDriverDelegateClass() {
+        return "org.quartz.impl.jdbcjobstore.MSSQLDelegate";
+    }
+
+    public String getHibernateConfigFile() {
+        return "sqlserver.hibernate.cfg.xml";
+    }
+
+    public String getAuditDirName() {
+        return "sqlserver";
+    }
+
+    public String getScriptDirName() {
+        return "sqlserver";
+    }
+
+    public int getDbNameLength() {
+        return 128;
+    }
+
+    public int getDbUserNameLength() {
+        return 128;
     }
 }

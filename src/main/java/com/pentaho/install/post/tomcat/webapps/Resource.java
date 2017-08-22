@@ -2,8 +2,10 @@ package com.pentaho.install.post.tomcat.webapps;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
 @XmlRootElement(name = "Resource")
+@XmlType(propOrder = {"auth","driverClassName","factory","maxTotal","maxIdle","maxWaitMillis","name","password","type","url","username","validationQuery"})
 public class Resource {
     private String auth = "Container";
     private String driverClassName = "org.postgresql.Driver";

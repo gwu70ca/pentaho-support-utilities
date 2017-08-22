@@ -1,16 +1,15 @@
 package com.pentaho.install.input;
 
-import java.util.regex.Pattern;
+import com.pentaho.install.db.Dialect;
 
-import com.pentaho.install.DBParam;
-import com.pentaho.install.DBParam.DB;
+import java.util.regex.Pattern;
 
 public class DBUsernameInput extends StringInput {
 	Pattern pattern = Pattern.compile("[_a-zA-Z][a-zA-Z0-9_]*");
 	
-	public DBUsernameInput(String prompt, DB dbType) {
+	public DBUsernameInput(String prompt, Dialect dialect) {
 		super(prompt);
-		length = DBParam.DB_USERNAME_LENGTH.get(dbType);
+		length = dialect.getDbUserNameLength();
 	}
 	
 	public String validate() {

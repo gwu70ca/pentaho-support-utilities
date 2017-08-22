@@ -118,10 +118,11 @@ public class JDBCConnector {
         Statement stmt = null;
         ResultSet rs = null;
         try {
+            Dialect dialect = InstallUtil.createDialect(dbInstance.getType());
             conn = getConnection(dbInstance);
 
             stmt = conn.createStatement();
-            String validateSql = DBParam.getValidationQuery(dbInstance.getType());
+            String validateSql = dialect.getValidationQuery();
             System.out.println("Running validation query: " + validateSql + " ..... ");
             rs = stmt.executeQuery(validateSql);
 

@@ -8,11 +8,20 @@ import com.pentaho.install.db.Dialect;
 import com.pentaho.install.post.PentahoXMLConfig;
 import com.pentaho.install.post.XMLGenerator;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.Scanner;
+
 public class JackrabbitXMLGenerator extends XMLGenerator {
     private InstallParam installParam;
+    private Scanner scanner;
 
-    public JackrabbitXMLGenerator(InstallParam installParam) {
+    public JackrabbitXMLGenerator(InstallParam installParam, Scanner scanner) {
         this.installParam = installParam;
+        this.scanner = scanner;
     }
 
     private PentahoXMLConfig createRepository() {
@@ -129,26 +138,24 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         try {
             PentahoXMLConfig repository = createRepository();
             String repositoryFile = InstallUtil.getJackrabbitRepositoryFilePath(installParam);
-            success = createXml(repository, repositoryFile, "Updating Jackrabbit repository configuration file: ");
+
+            File original = new File(repositoryFile);
+            if (InstallUtil.backup(original, scanner)) {
+                InstallUtil.output("Updating Jackrabbit repository configuration file");
+                BufferedWriter writer = null;
+                try {
+                    writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(repositoryFile), StandardCharsets.UTF_8));
+                    if (!createXml(repository, writer)) {
+                        return success;
+                    }
+                } catch (Exception ex) {
+                    close(writer);
+                }
+            }
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
         }
 
         return success;
     }
-
-    /*
-    public static void main(String[] args) throws Exception {
-        System.setProperty("local", "true");
-
-        InstallParam installParam = new InstallParam();
-        installParam.dbType = DB.Psql;
-        installParam.pentahoServerType = SERVER.HYBRID;
-        Map<String, DBInstance> dbInstanceMap = DBParam.initDbInstances(installParam.pentahoServerType);
-        installParam.dbInstanceMap = dbInstanceMap;
-
-        JackrabbitXMLGenerator jxg = new JackrabbitXMLGenerator(installParam);
-        jxg.createJackrabbitConfig();
-    }
-    */
 }

@@ -127,7 +127,7 @@ public class DBInstance extends DBParam {
     }
 
     public String toString() {
-        return super.toString() + "\nDB name: " + this.name + ", username: " + username + ", password: " + password + ", is customized: " + this.customed + "\n"
-                + "DB script file: " + this.dbFileName;
+        return super.toString() + "\nResource name: " + resourceName + ", DB name: " + this.name + ", username: " + username + ", password: " + password + ", is customized: " + this.customed + "\n"
+                + (this.dbFileName != null ? ("DB script file: " + this.dbFileName):"");
     }
 }

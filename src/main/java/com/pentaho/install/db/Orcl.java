@@ -69,11 +69,51 @@ public class Orcl implements Dialect {
         return "J_C_";
     }
 
+    public String getJdbcPrefix() {
+        return "jdbc:oracle:thin:@";
+    }
+
     public String getJdbcDriverClass() {
         return "oracle.jdbc.OracleDriver";
     }
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
         return dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/XE";
+    }
+
+    public String getDefaultPort() {
+        return "1521";
+    }
+
+    public String getDefaultAdmin() {
+        return "postgres";
+    }
+
+    public String getQuartzDriverDelegateClass() {
+        return "org.quartz.impl.jdbcjobstore.oracle.OrclDelegate";
+    }
+
+    public String getHibernateConfigFile() {
+        return "oracle10g.hibernate.cfg.xml";
+    }
+
+    public String getAuditDirName() {
+        return "oracle10g";
+    }
+
+    public String getValidationQuery() {
+        return "select 1 from dual";
+    }
+
+    public String getScriptDirName() {
+        return "oracle10g";
+    }
+
+    public int getDbNameLength() {
+        return 8;
+    }
+
+    public int getDbUserNameLength() {
+        return 30;
     }
 }
