@@ -13,6 +13,8 @@ import static com.pentaho.install.InstallUtil.EXIT;
 import static com.pentaho.install.InstallUtil.NEW_LINE;
 
 public class Pentsu {
+    public static String PENSU = ".pensu";
+
     private static Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -55,7 +57,6 @@ public class Pentsu {
             scanner.close();
         }
     }
-
 
     public static String prompt() {
         StringBuilder buf = new StringBuilder();
