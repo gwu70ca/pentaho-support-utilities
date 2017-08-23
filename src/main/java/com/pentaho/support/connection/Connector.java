@@ -29,7 +29,9 @@ public class Connector {
     static String LDAP_GROUP_CN = "ldap_group_cn";
     static String LDAP_GROUP_SAM = "ldap_group_sam";
     static String LDAP_GROUP_SEARCH_BASE = "ldap_group_search_base";
-
+    static String DB_SERVER = "db_host";
+    static String DB_PORT = "db_port";
+    static String DB_USER = "db_user";
 
     private Scanner scanner;
     private Properties history;
@@ -136,13 +138,15 @@ public class Connector {
         DBInstance dbInstance = new DBInstance("", defaultAdminUser, "");
         dbInstance.setType(dbType);
 
-        StringInput dbHostInput = new StringInput(String.format("Database hostname or IP address [%s]: ", dbInstance.getHost()));
-        dbHostInput.setDefaultValue(dbInstance.getHost());
+        StringInput dbHostInput = new StringInput("");
+        setDefaultValue(DB_SERVER, dbInstance.getHost(), dbHostInput);
+        dbHostInput.setPrompt(String.format("Database hostname or IP address [%s]: ", dbHostInput.getDefaultValue()));
         InstallUtil.ask(scanner, dbHostInput);
         dbInstance.setHost(dbHostInput.getValue());
 
-        IntegerInput dbPortInput = new IntegerInput("Database port [" + dbInstance.getPort() + "]: ");
-        dbPortInput.setDefaultValue(dbInstance.getPort());
+        IntegerInput dbPortInput = new IntegerInput("");
+        setDefaultValue(DB_PORT, dbInstance.getPort(), dbPortInput);
+        dbPortInput.setPrompt(String.format("Database port [%s]: ", dbPortInput.getDefaultValue()));
         InstallUtil.ask(scanner, dbPortInput);
         dbInstance.setPort(dbPortInput.getValue());
 
@@ -176,8 +180,9 @@ public class Connector {
         }
 
         if (!winAuth || needUsernameAndPassword) {
-            StringInput userInput = new StringInput("Database username [" + defaultAdminUser + "]: ");
-            userInput.setDefaultValue(defaultAdminUser);
+            StringInput userInput = new StringInput("");
+            setDefaultValue(DB_USER, defaultAdminUser, userInput);
+            userInput.setPrompt(String.format("Database username [%s]: ", userInput.getDefaultValue()));
             InstallUtil.ask(scanner, userInput);
             dbInstance.setUsername(userInput.getValue());
 
@@ -198,6 +203,10 @@ public class Connector {
 
         JDBCConnector connector = new JDBCConnector();
         if (connector.test(dbInstance)) {
+            history.setProperty(DB_SERVER, dbInstance.getHost());
+            history.setProperty(DB_PORT, dbInstance.getPort());
+            history.setProperty(DB_USER, dbInstance.getUsername());
+
             BooleanInput input = new BooleanInput("Do you want to run a SQL query, [y/n]? ");
             InstallUtil.ask(scanner, input);
             if (input.yes()) {
@@ -206,6 +215,8 @@ public class Connector {
                 connector.executeSql(dbInstance, sqlInput.getValue());
             }
         }
+
+        saveHistory();
     }
 
     private String[] ldapTypePrompt() {
