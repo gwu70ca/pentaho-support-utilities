@@ -2,7 +2,9 @@ package com.pentaho.support.connection;
 
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.LDAPParam;
+import com.pentaho.install.post.PostInstaller;
 
+import javax.naming.CommunicationException;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.*;
@@ -111,7 +113,7 @@ public class LDAPConnector {
 		try {
 			String url = "ldap://" + ldapParam.getHost() + ":" + ldapParam.getPort();
 			System.out.println("Connecting to " + url);
-			System.out.println(ldapParam.getAdminUser() + ", " + ldapParam.getAdminPassword());
+			System.out.println(ldapParam.getAdminUser());
 
 			Hashtable<String, String> ldapEnv = new Hashtable<>(11);
 			ldapEnv.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
@@ -120,12 +122,17 @@ public class LDAPConnector {
 			ldapEnv.put(Context.SECURITY_PRINCIPAL, ldapParam.getAdminUser());
 			ldapEnv.put(Context.SECURITY_CREDENTIALS, ldapParam.getAdminPassword());
 			ldapContext = new InitialDirContext(ldapEnv);
+		} catch (CommunicationException ce) {
+			InstallUtil.error(String.format("Could not connect to server [%s]:[%s]", ldapParam.getHost(), ldapParam.getPort()));
 		} catch (Exception ex) {
 		    String error = ex.getMessage();
 		    if (error.contains("LDAP: error code 49")) {
 		        System.out.println("User credentials are not correct");
             }
-			System.err.println(error);
+
+            if (PostInstaller.DEBUG) {
+		        ex.printStackTrace();
+            }
 		}
 
 		return ldapContext;
