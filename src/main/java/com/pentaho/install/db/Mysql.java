@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Mysql implements Dialect {
+    static String JDBC_PREFIX = "jdbc:mysql://";
     //TODO ask if enable remote access for mysql
     private boolean enableMysqlRemoteAccess = true;
 
@@ -65,7 +66,7 @@ public class Mysql implements Dialect {
     }
 
     public String getJdbcPrefix() {
-        return "jdbc:mysql://";
+        return JDBC_PREFIX;
     }
 
     public String getJdbcDriverClass() {
@@ -74,7 +75,7 @@ public class Mysql implements Dialect {
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
         String dbName = dbInstance.getName();
-        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName) || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)) {
+        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)/* || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)*/) {
             dbName = DBParam.DB_NAME_PENT_OP_MART;
         }
 
@@ -95,15 +96,15 @@ public class Mysql implements Dialect {
     }
 
     public String getHibernateConfigFile() {
-        return "mysql5.hibernate.cfg.xml";
+        return DBParam.DB.Mysql.code + ".hibernate.cfg.xml";
     }
 
     public String getAuditDirName() {
-        return "mysql5";
+        return DBParam.DB.Mysql.code;
     }
 
     public String getScriptDirName() {
-        return "mysql5";
+        return DBParam.DB.Mysql.code;
     }
 
     public int getDbNameLength() {
@@ -112,5 +113,13 @@ public class Mysql implements Dialect {
 
     public int getDbUserNameLength() {
         return 16;
+    }
+
+    public String[] parse(String url) {
+        //jdbc:mysql://localhost:3306/p7_hibernate
+        String s = url.substring(JDBC_PREFIX.length());
+        int colon = s.indexOf(":");
+        int slash = s.indexOf("/", colon);
+        return new String[]{s.substring(0, colon), s.substring(colon+1, slash), s.substring(slash+1)};
     }
 }

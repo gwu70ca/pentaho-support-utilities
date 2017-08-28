@@ -14,18 +14,20 @@ public class DBInstance extends DBParam {
     private boolean jtds;
     private String domain;
 
-    public DBInstance(String name, String username, String password) {
+    public DBInstance(String name, String username, String password, DB dbType) {
         this.name = this.defaultName = name;
         this.username = this.defaultUsername = username;
         this.password = this.defaultPassword = password;
+        setType(dbType);
     }
 
     public DBInstance(String name, String username, String password, DB dbType, String resourceName) {
         this.name = this.defaultName = name;
         this.username = this.defaultUsername = username;
         this.password = this.defaultPassword = password;
-        this.type = dbType;
         this.resourceName = resourceName;
+
+        setType(dbType);
 
         initDbProperty();
     }

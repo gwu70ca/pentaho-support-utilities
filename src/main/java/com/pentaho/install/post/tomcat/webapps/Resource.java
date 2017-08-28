@@ -1,23 +1,34 @@
 package com.pentaho.install.post.tomcat.webapps;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 @XmlRootElement(name = "Resource")
-@XmlType(propOrder = {"auth","driverClassName","factory","maxTotal","maxIdle","maxWaitMillis","name","password","type","url","username","validationQuery"})
+@XmlType(propOrder = {"auth", "driverClassName", "factory", "maxTotal", "maxIdle", "maxWaitMillis", "name", "password", "type", "url", "username", "validationQuery"})
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Resource {
+    @XmlAttribute
     private String auth = "Container";
+    @XmlAttribute
     private String driverClassName = "org.postgresql.Driver";
+    @XmlAttribute
     private String factory = "org.apache.commons.dbcp.BasicDataSourceFactory";
+    @XmlAttribute
     private String maxIdle = "5";
+    @XmlAttribute
     private String maxTotal = "20";
+    @XmlAttribute
     private String maxWaitMillis = "10000";
+    @XmlAttribute
     private String name = "jdbc/Hibernate";
+    @XmlAttribute
     private String password = "pentaho";
+    @XmlAttribute
     private String type = "javax.sql.DataSource";
+    @XmlAttribute
     private String url = "jdbc:postgresql://localhost:5432/hibernate";
+    @XmlAttribute
     private String username = "hibuser";
+    @XmlAttribute
     private String validationQuery = "select 1";
 
     public Resource() {
@@ -32,7 +43,6 @@ public class Resource {
         this.validationQuery = validationQuery;
     }
 
-    @XmlAttribute
     public String getAuth() {
         return auth;
     }
@@ -41,7 +51,6 @@ public class Resource {
         this.auth = auth;
     }
 
-    @XmlAttribute
     public String getDriverClassName() {
         return driverClassName;
     }
@@ -50,7 +59,6 @@ public class Resource {
         this.driverClassName = driverClassName;
     }
 
-    @XmlAttribute
     public String getFactory() {
         return factory;
     }
@@ -59,7 +67,6 @@ public class Resource {
         this.factory = factory;
     }
 
-    @XmlAttribute
     public String getMaxIdle() {
         return maxIdle;
     }
@@ -68,7 +75,6 @@ public class Resource {
         this.maxIdle = maxIdle;
     }
 
-    @XmlAttribute
     public String getMaxTotal() {
         return maxTotal;
     }
@@ -77,7 +83,6 @@ public class Resource {
         this.maxTotal = maxTotal;
     }
 
-    @XmlAttribute
     public String getMaxWaitMillis() {
         return maxWaitMillis;
     }
@@ -86,7 +91,6 @@ public class Resource {
         this.maxWaitMillis = maxWaitMillis;
     }
 
-    @XmlAttribute
     public String getName() {
         return name;
     }
@@ -95,7 +99,6 @@ public class Resource {
         this.name = name;
     }
 
-    @XmlAttribute
     public String getPassword() {
         return password;
     }
@@ -104,7 +107,6 @@ public class Resource {
         this.password = password;
     }
 
-    @XmlAttribute
     public String getType() {
         return type;
     }
@@ -113,7 +115,6 @@ public class Resource {
         this.type = type;
     }
 
-    @XmlAttribute
     public String getUrl() {
         return url;
     }
@@ -122,7 +123,6 @@ public class Resource {
         this.url = url;
     }
 
-    @XmlAttribute
     public String getUsername() {
         return username;
     }
@@ -131,12 +131,15 @@ public class Resource {
         this.username = username;
     }
 
-    @XmlAttribute
     public String getValidationQuery() {
         return validationQuery;
     }
 
     public void setValidationQuery(String validationQuery) {
         this.validationQuery = validationQuery;
+    }
+
+    public String toString() {
+        return "name:" + name + ", driverClassName: " + driverClassName;
     }
 }

@@ -158,7 +158,7 @@ public class ConfigUpdater extends InstallAction {
             if (PostInstaller.SILENT) {
 
             } else {
-                BooleanInput askForContinue = new BooleanInput("There is error happened, do you want to move to next step (y/n)? ");
+                BooleanInput askForContinue = new BooleanInput("There was an error happened, do you want to move to next step (y/n)? ");
                 InstallUtil.ask(scanner, askForContinue);
                 if (!askForContinue.yes()) {
                     System.exit(0);

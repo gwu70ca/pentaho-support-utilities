@@ -255,7 +255,7 @@ public class DatabaseInfoCollector extends InstallAction {
                     dialect.setDefaultUsername(dbName, dbInstance, serverType);
 
                     String dbUsername, dbPassword;
-                    if (DBParam.DB_NAME_PENT_OP_MART.equals(dbInstance.getDefaultName())) {
+                    if (DBParam.DB_NAME_PENT_OP_MART.equals(dbInstance.getDefaultName())/* || DBParam.DB_NAME_PDI_OP_MART.equals(dbInstance.getDefaultName())*/) {
                         //Pentaho operations mart uses same credentials as hibernate
                         DBInstance hibernateInstance = dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
                         dbUsername = hibernateInstance.getUsername();

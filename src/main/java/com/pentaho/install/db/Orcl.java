@@ -86,7 +86,7 @@ public class Orcl implements Dialect {
     }
 
     public String getDefaultAdmin() {
-        return "postgres";
+        return "system";
     }
 
     public String getQuartzDriverDelegateClass() {
@@ -94,11 +94,11 @@ public class Orcl implements Dialect {
     }
 
     public String getHibernateConfigFile() {
-        return "oracle10g.hibernate.cfg.xml";
+        return DBParam.DB.Orcl.code + ".hibernate.cfg.xml";
     }
 
     public String getAuditDirName() {
-        return "oracle10g";
+        return DBParam.DB.Orcl.code;
     }
 
     public String getValidationQuery() {
@@ -106,7 +106,7 @@ public class Orcl implements Dialect {
     }
 
     public String getScriptDirName() {
-        return "oracle10g";
+        return DBParam.DB.Orcl.code;
     }
 
     public int getDbNameLength() {
@@ -115,5 +115,9 @@ public class Orcl implements Dialect {
 
     public int getDbUserNameLength() {
         return 30;
+    }
+
+    public String[] parse(String url) {
+        return null;
     }
 }

@@ -88,7 +88,7 @@ public class Sqlserver implements Dialect {
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
         String dbName = dbInstance.getName();
-        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName) || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)) {
+        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)/* || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)*/) {
             dbName = DBParam.DB_NAME_HIBERNATE;
         }
 
@@ -121,15 +121,15 @@ public class Sqlserver implements Dialect {
     }
 
     public String getHibernateConfigFile() {
-        return "sqlserver.hibernate.cfg.xml";
+        return DBParam.DB.Sqlserver.code + "sqlserver.hibernate.cfg.xml";
     }
 
     public String getAuditDirName() {
-        return "sqlserver";
+        return DBParam.DB.Sqlserver.code;
     }
 
     public String getScriptDirName() {
-        return "sqlserver";
+        return DBParam.DB.Sqlserver.code;
     }
 
     public int getDbNameLength() {
@@ -138,5 +138,9 @@ public class Sqlserver implements Dialect {
 
     public int getDbUserNameLength() {
         return 128;
+    }
+
+    public String[] parse(String url) {
+        return null;
     }
 }

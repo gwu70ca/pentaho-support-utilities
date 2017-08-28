@@ -6,7 +6,35 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DBParam {
-	public enum DB {Mysql, Psql, Orcl, Sqlserver}
+	public enum DB {
+		Mysql ("MYSQL", "MySQL", "mysql5"),
+		Psql ("PSQL", "PostgreSQL", "postgresql"),
+		Orcl ("ORCL", "Oracle", "oracle10g"),
+		Sqlserver ("MSSQL", "Microsoft SQL Server", "sqlserver");
+
+		public String name;
+		public String longName;
+		public String code;
+
+		DB(String n, String ln, String c) {
+			this.name = n;
+			this.longName = ln;
+			this.code = c;
+		}
+
+		public static DB getDB(String code) {
+		    for (DB db : values()) {
+		        if (db.code.equals(code)) {
+		            return db;
+                }
+            }
+            throw new IllegalArgumentException();
+        }
+
+		public String toString() {
+			return this.longName;
+		}
+	}
 
     public static String POSTGRESQL_CONNECT_COMMAND_L = "\\connect";
     public static String POSTGRESQL_CONNECT_COMMAND_S = "\\c";
@@ -16,13 +44,13 @@ public class DBParam {
 	public static String RESOURCE_NAME_AUDIT = "jdbc/Audit";
 	public static String RESOURCE_NAME_QUARTZ = "jdbc/Quartz";
 	public static String RESOURCE_NAME_PENTAHO_OPERATIONS_MART = "jdbc/pentaho_operations_mart";
-	public static String RESOURCE_NAME_PDI_OPERATIONS_MART = "jdbc/PDI_Operations_Mart";
+	//public static String RESOURCE_NAME_PDI_OPERATIONS_MART = "jdbc/PDI_Operations_Mart";
 
 	public static String DB_NAME_HIBERNATE = "hibernate";
 	public static String DB_NAME_JACKRABBIT = "jackrabbit";
 	public static String DB_NAME_QUARTZ = "quartz";
 	public static String DB_NAME_PENT_OP_MART = "pentaho_operations_mart";
-	public static String DB_NAME_PDI_OP_MART = "pdi_operations_mart";
+	//public static String DB_NAME_PDI_OP_MART = "pdi_operations_mart";
 
     public static String DB_NAME_HIBERNATE_DI = "di_hibernate";
     public static String DB_NAME_JACKRABBIT_DI = "di_jackrabbit";
@@ -34,7 +62,7 @@ public class DBParam {
         dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, "jcr_user", "password", dbType, ""));
         dbInstanceMap.put(DBParam.DB_NAME_QUARTZ, new DBInstance(DBParam.DB_NAME_QUARTZ, "pentaho_user", "password", dbType, DBParam.RESOURCE_NAME_QUARTZ));
         dbInstanceMap.put(DBParam.DB_NAME_PENT_OP_MART, new DBInstance(DBParam.DB_NAME_PENT_OP_MART, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_PENTAHO_OPERATIONS_MART));
-        dbInstanceMap.put(DBParam.DB_NAME_PDI_OP_MART, new DBInstance(DBParam.DB_NAME_PDI_OP_MART, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_PDI_OPERATIONS_MART));
+        //dbInstanceMap.put(DBParam.DB_NAME_PDI_OP_MART, new DBInstance(DBParam.DB_NAME_PDI_OP_MART, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_PDI_OPERATIONS_MART));
 		
 		return dbInstanceMap;
 	}

@@ -27,7 +27,7 @@ public interface Dialect {
     String getScriptDirName();
     int getDbNameLength();
     int getDbUserNameLength();
-
+    String[] parse(String url);
 
     default String getValidationQuery() {
         return "select 1";

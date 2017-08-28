@@ -19,7 +19,7 @@ public class TomcatXMLGeneratorTest {
                     "  <Resource auth=\"Container\" driverClassName=\"com.microsoft.sqlserver.jdbc.SQLServerDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Audit\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:sqlserver://localhost:1433;DatabaseName=hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
                     "  <Resource auth=\"Container\" driverClassName=\"com.microsoft.sqlserver.jdbc.SQLServerDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Quartz\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:sqlserver://localhost:1433;DatabaseName=quartz\" username=\"pentaho_user\" validationQuery=\"select 1\"/>\n" +
                     "  <Resource auth=\"Container\" driverClassName=\"com.microsoft.sqlserver.jdbc.SQLServerDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/pentaho_operations_mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:sqlserver://localhost:1433;DatabaseName=hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"com.microsoft.sqlserver.jdbc.SQLServerDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:sqlserver://localhost:1433;DatabaseName=hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
+                    //"  <Resource auth=\"Container\" driverClassName=\"com.microsoft.sqlserver.jdbc.SQLServerDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:sqlserver://localhost:1433;DatabaseName=hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
                     "</Context>";
 
     String POSTGRESQL_XML =
@@ -29,7 +29,7 @@ public class TomcatXMLGeneratorTest {
                     "  <Resource auth=\"Container\" driverClassName=\"org.postgresql.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Audit\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:postgresql://localhost:5432/hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
                     "  <Resource auth=\"Container\" driverClassName=\"org.postgresql.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Quartz\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:postgresql://localhost:5432/quartz\" username=\"pentaho_user\" validationQuery=\"select 1\"/>\n" +
                     "  <Resource auth=\"Container\" driverClassName=\"org.postgresql.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/pentaho_operations_mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:postgresql://localhost:5432/hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"org.postgresql.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:postgresql://localhost:5432/hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
+                    //"  <Resource auth=\"Container\" driverClassName=\"org.postgresql.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:postgresql://localhost:5432/hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
                     "</Context>";
 
     String MYSQL_XML =
@@ -39,17 +39,17 @@ public class TomcatXMLGeneratorTest {
                     "  <Resource auth=\"Container\" driverClassName=\"com.mysql.jdbc.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Audit\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:mysql://localhost:3306/hibernate\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
                     "  <Resource auth=\"Container\" driverClassName=\"com.mysql.jdbc.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Quartz\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:mysql://localhost:3306/quartz\" username=\"pentaho_user\" validationQuery=\"select 1\"/>\n" +
                     "  <Resource auth=\"Container\" driverClassName=\"com.mysql.jdbc.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/pentaho_operations_mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:mysql://localhost:3306/pentaho_operations_mart\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"com.mysql.jdbc.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:mysql://localhost:3306/pentaho_operations_mart\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
+                    //"  <Resource auth=\"Container\" driverClassName=\"com.mysql.jdbc.Driver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:mysql://localhost:3306/pentaho_operations_mart\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
                     "</Context>";
 
     String ORACLE_XML =
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
                     "  <Context docbase=\"webapps/pentaho/\" path=\"/pentaho\">\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Hibernate\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Audit\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Quartz\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"pentaho_user\" validationQuery=\"select 1\"/>\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/pentaho_operations_mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
-                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1\"/>\n" +
+                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Hibernate\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1 from dual\"/>\n" +
+                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Audit\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1 from dual\"/>\n" +
+                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/Quartz\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"pentaho_user\" validationQuery=\"select 1 from dual\"/>\n" +
+                    "  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/pentaho_operations_mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1 from dual\"/>\n" +
+                    //"  <Resource auth=\"Container\" driverClassName=\"oracle.jdbc.OracleDriver\" factory=\"org.apache.commons.dbcp.BasicDataSourceFactory\" maxIdle=\"5\" maxTotal=\"20\" maxWaitMillis=\"10000\" name=\"jdbc/PDI_Operations_Mart\" password=\"password\" type=\"javax.sql.DataSource\" url=\"jdbc:oracle:thin:@localhost:1521/XE\" username=\"hibuser\" validationQuery=\"select 1 from dual\"/>\n" +
                     "</Context>";
 
     @Test
@@ -63,7 +63,7 @@ public class TomcatXMLGeneratorTest {
         TomcatXMLGenerator txg = new TomcatXMLGenerator(installParam, new Scanner(System.in));
         TomcatConf context = txg.createWebappsContext();
         StringWriter writer = new StringWriter();
-        txg.createContextXml(context, writer);
+        txg.createXml(context, writer);
         String xml = writer.toString();
         Assert.assertNotNull(xml);
 
@@ -78,7 +78,6 @@ public class TomcatXMLGeneratorTest {
         }
     }
 
-
     @Test
     public void testPostgreSQL() {
         InstallParam installParam = new InstallParam();
@@ -90,8 +89,9 @@ public class TomcatXMLGeneratorTest {
         TomcatXMLGenerator txg = new TomcatXMLGenerator(installParam, new Scanner(System.in));
         TomcatConf context = txg.createWebappsContext();
         StringWriter writer = new StringWriter();
-        txg.createContextXml(context, writer);
+        txg.createXml(context, writer);
         String xml = writer.toString();
+        System.out.println(xml);
         Assert.assertNotNull(xml);
 
         String[] lines1 = xml.split("\n");
@@ -116,7 +116,7 @@ public class TomcatXMLGeneratorTest {
         TomcatXMLGenerator txg = new TomcatXMLGenerator(installParam, new Scanner(System.in));
         TomcatConf context = txg.createWebappsContext();
         StringWriter writer = new StringWriter();
-        txg.createContextXml(context, writer);
+        txg.createXml(context, writer);
         String xml = writer.toString();
         Assert.assertNotNull(xml);
 
@@ -140,7 +140,7 @@ public class TomcatXMLGeneratorTest {
         TomcatXMLGenerator txg = new TomcatXMLGenerator(installParam, new Scanner(System.in));
         TomcatConf context = txg.createWebappsContext();
         StringWriter writer = new StringWriter();
-        txg.createContextXml(context, writer);
+        txg.createXml(context, writer);
         String xml = writer.toString();
         Assert.assertNotNull(xml);
 

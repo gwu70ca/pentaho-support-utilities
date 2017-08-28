@@ -2,8 +2,9 @@ package com.pentaho.install.post.spring;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
 
-@XmlRootElement
+@XmlRootElement(name = "property")
 public class Property {
     private String name;
     private String value;
@@ -17,7 +18,7 @@ public class Property {
         this.name = name;
     }
 
-    @XmlAttribute
+    @XmlValue
     public String getValue() {
         return value;
     }

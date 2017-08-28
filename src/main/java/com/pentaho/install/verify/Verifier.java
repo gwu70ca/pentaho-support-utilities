@@ -2,30 +2,47 @@ package com.pentaho.install.verify;
 
 
 import com.pentaho.install.*;
+import com.pentaho.install.db.Dialect;
 import com.pentaho.install.input.StringInput;
 import com.pentaho.install.post.LocationChooser;
 import com.pentaho.install.post.ServerChooser;
+import com.pentaho.install.post.hibernate.Configuration;
+import com.pentaho.install.post.hibernate.SessionFactory;
+import com.pentaho.install.post.hibernate.Settings;
+import com.pentaho.install.post.jackrabbit.Repository;
 import com.pentaho.install.post.spring.Bean;
+import com.pentaho.install.post.spring.Property;
+import com.pentaho.install.post.tomcat.webapps.Context;
+import com.pentaho.support.connection.JDBCConnector;
 import com.pentaho.support.connection.LDAPConnector;
+import org.w3c.dom.Document;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.FileReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Base64;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.pentaho.install.LDAPParam.LDAP;
 
 public class Verifier {
     static Scanner scanner;
     static String auth;
+    static String dbString;
+    static DBParam.DB dbType;
+    static Dialect dialect;
+
     static String AUTH_LDAP = "ldap";
     static String AUTH_JACKRABBIT = "jackrabbit";
+
+    static Pattern p = Pattern.compile("system/hibernate/(.*)\\.hibernate\\.cfg\\.xml");
 
     public static void main(String[] args) {
         verify();
@@ -51,16 +68,20 @@ public class Verifier {
             String serverRoot = InstallUtil.getServerRootDir(installParam);
             InstallUtil.output("Server root: " + serverRoot);
 
-            findAuth(serverRoot);
-            InstallUtil.output("provider: " + auth);
-
-            if (AUTH_LDAP.equals(auth)) {
-                verifyLdap(serverRoot);
-            }
+            verifyHibernate(serverRoot);
 
             //verifyJackrabbit(serverRoot);
+
+            //verifyTomcat(serverRoot);
+
+            findAuth(serverRoot);
+            InstallUtil.output("provider: " + auth);
+            /*if (AUTH_LDAP.equals(auth)) {
+                verifyLdap(serverRoot);
+            }*/
         } catch (Exception ex) {
-            InstallUtil.error(ex.getMessage());
+            //InstallUtil.error(ex.getMessage());
+            ex.printStackTrace();
         } finally {
             if (scanner != null) {
                 scanner.close();
@@ -77,6 +98,101 @@ public class Verifier {
         Properties securityProp = new Properties();
         securityProp.load(new FileReader(securityPropertiesFile));
         auth = securityProp.getProperty("provider");
+    }
+
+    public static boolean verifyHibernate(String serverRoot) throws Exception {
+        File hibernateSettingsFile = new File(serverRoot, "/pentaho-solutions/system/hibernate/hibernate-settings.xml");
+        if (!hibernateSettingsFile.exists()) {
+            throw new Exception(String.format("Could not find file [%s]", hibernateSettingsFile.getAbsolutePath()));
+        }
+
+        Settings hibernateSettings = new Settings();
+        JAXBContext context = JAXBContext.newInstance(hibernateSettings.getClass());
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+        hibernateSettings = (Settings)unmarshaller.unmarshal(new FileReader(hibernateSettingsFile));
+        String configFile = hibernateSettings.getConfigFile();
+        //System.out.println("configFile:" + configFile);
+        Matcher m = p.matcher(configFile);
+        if (m.find()) {
+            dbString = m.group(1);
+            System.out.println("dbString: " + dbString);
+        }
+
+        File dbHibernateFile = new File(serverRoot, "/pentaho-solutions/system/hibernate/" + dbString + ".hibernate.cfg.xml");
+        if (!dbHibernateFile.exists()) {
+            throw new Exception(String.format("Could not find file [%s]", dbHibernateFile.getAbsolutePath()));
+        }
+        System.out.println("dbHibernateFile: " + dbHibernateFile);
+
+        Configuration configuration = new Configuration();
+        context = JAXBContext.newInstance(configuration.getClass());
+        unmarshaller = context.createUnmarshaller();
+        configuration = (Configuration)unmarshaller.unmarshal(new FileReader(dbHibernateFile));
+        SessionFactory factory = configuration.getSessionFactory();
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        List<Property> pl = factory.getPropertyList();
+        for (Property p : pl) {
+            propertyMap.put(p.getName(), p);
+            //System.out.println(p.getName() + ", " + p.getValue());
+        }
+
+        dbType = DBParam.DB.getDB(dbString);
+        //System.out.println("dbType:" + dbType);
+
+        dialect = InstallUtil.createDialect(dbType);
+
+        String url = propertyMap.get(SessionFactory.connectionUrl).getValue();
+        String username = propertyMap.get(SessionFactory.connectionUsername).getValue();
+        String password = propertyMap.get(SessionFactory.connectionPassword).getValue();
+        String[] dbParams = dialect.parse(url);
+
+        DBInstance dbInstance = new DBInstance(dbParams[2], username, password, dbType);
+        dbInstance.setHost(dbParams[0]);
+        dbInstance.setPort(dbParams[1]);
+        JDBCConnector jdbcConnector = new JDBCConnector();
+        jdbcConnector.test(dbInstance);
+
+        return false;
+}
+
+    public static boolean verifyJackrabbit(String serverRoot) throws Exception {
+        File repositoryFile = new File(serverRoot, "/pentaho-solutions/system/jackrabbit/repository.xml");
+        if (!repositoryFile.exists()) {
+            throw new Exception(String.format("Could not find file [%s]", repositoryFile.getAbsolutePath()));
+        }
+
+        Repository repository = new Repository();
+        JAXBContext context = JAXBContext.newInstance(repository.getClass());
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+        repository = (Repository)unmarshaller.unmarshal(new FileReader(repositoryFile));
+
+        //FileSystem fileSystem = repository.getFileSystem();
+        //System.out.println("file system: " + fileSystem.getDriver().getValue());
+
+        //DataStore dataStore = repository.getDataStore();
+        //System.out.println("data store :" + dataStore.getDriver());
+
+        return false;
+    }
+
+    public static boolean verifyTomcat(String serverRoot) throws Exception {
+        boolean succeeded = false;
+
+        File appCtxSecFile = new File(serverRoot, "/tomcat/webapps/pentaho/META-INF/context.xml");
+        if (!appCtxSecFile.exists()) {
+            throw new Exception(String.format("Could not find file [%s]", appCtxSecFile.getAbsolutePath()));
+        }
+
+        Context tomcat = new Context();
+        JAXBContext context = JAXBContext.newInstance(tomcat.getClass());
+        Unmarshaller unmarshaller = context.createUnmarshaller();
+        tomcat = (Context)unmarshaller.unmarshal(new FileReader(appCtxSecFile));
+
+        System.out.println(tomcat.getHibernate().getDriverClassName() + ", " + tomcat.getHibernate().getName());
+        System.out.println(tomcat.getAudit().getDriverClassName() + ", " + tomcat.getHibernate().getName());
+
+        return succeeded;
     }
 
     public static boolean verifyLdap(String serverRoot) throws Exception {
@@ -155,6 +271,7 @@ public class Verifier {
         return succeeded;
     }
 
+    //Check if the LDAP password is base64 encoded
     private static boolean checkPasswordService(String serverRoot) {
         boolean encoded = false;
         File appCtxSprSecLdapFile = new File(serverRoot, "/pentaho-solutions/system/applicationContext-spring-security-ldap.xml");
@@ -167,7 +284,6 @@ public class Verifier {
                 String beanDefString = content.substring(start, end+7);
 
                 Bean bean = new Bean();
-
                 JAXBContext context = JAXBContext.newInstance(bean.getClass());
                 Unmarshaller unmarshaller = context.createUnmarshaller();
                 bean = (Bean)unmarshaller.unmarshal(new StringReader(beanDefString));
@@ -182,8 +298,17 @@ public class Verifier {
         return encoded;
     }
 
+    private Context getTomcatContext(File tomcatContextFile) {
+        Context context = null;
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(tomcatContextFile);
+        } catch (Exception ex) {
+            InstallUtil.error(ex.getMessage());
+        }
 
-    public static boolean verifyJackrabbit(String serverRoot) {
-        return false;
+        return context;
     }
+
 }

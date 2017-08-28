@@ -141,14 +141,14 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
 
             File original = new File(repositoryFile);
             if (InstallUtil.backup(original, scanner)) {
-                InstallUtil.output("Updating Jackrabbit repository configuration file");
+                InstallUtil.output("\nUpdating Jackrabbit repository configuration file");
                 BufferedWriter writer = null;
                 try {
                     writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(repositoryFile), StandardCharsets.UTF_8));
-                    if (!createXml(repository, writer)) {
-                        return success;
-                    }
+                    success = createXml(repository, writer);
                 } catch (Exception ex) {
+                    InstallUtil.error(ex.getMessage());
+                } finally {
                     close(writer);
                 }
             }

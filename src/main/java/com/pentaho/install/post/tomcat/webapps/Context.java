@@ -2,24 +2,28 @@ package com.pentaho.install.post.tomcat.webapps;
 
 import com.pentaho.install.post.tomcat.TomcatConf;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 @XmlRootElement(name = "Context")
-@XmlType(propOrder = {"hibernate","audit","quartz","pentahoOpMart","pdiOpMart"})
+@XmlType(propOrder = {"hibernate", "audit", "quartz", "pentahoOpMart"/*, "pdiOpMart"*/})
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Context implements TomcatConf {
+    @XmlAttribute
     private String docbase = "webapps/pentaho/";
+    @XmlAttribute
     private String path = "/pentaho";
 
+    @XmlElement(name = "Resource")
     private Resource hibernate = new Resource();
+    @XmlElement(name = "Resource")
     private Resource audit = new Resource();
+    @XmlElement(name = "Resource")
     private Resource quartz = new Resource();
+    @XmlElement(name = "Resource")
     private Resource pentahoOpMart = new Resource();
-    private Resource pdiOpMart = new Resource();
+    /*@XmlElement(name = "Resource")
+    private Resource pdiOpMart = new Resource();*/
 
-    @XmlAttribute
     public String getDocbase() {
         return docbase;
     }
@@ -28,7 +32,6 @@ public class Context implements TomcatConf {
         this.docbase = docbase;
     }
 
-    @XmlAttribute
     public String getPath() {
         return path;
     }
@@ -37,7 +40,6 @@ public class Context implements TomcatConf {
         this.path = path;
     }
 
-    @XmlElement(name = "Resource")
     public Resource getHibernate() {
         return hibernate;
     }
@@ -46,7 +48,6 @@ public class Context implements TomcatConf {
         this.hibernate = hibernate;
     }
 
-    @XmlElement(name = "Resource")
     public Resource getAudit() {
         return audit;
     }
@@ -55,7 +56,6 @@ public class Context implements TomcatConf {
         this.audit = audit;
     }
 
-    @XmlElement(name = "Resource")
     public Resource getQuartz() {
         return quartz;
     }
@@ -64,7 +64,6 @@ public class Context implements TomcatConf {
         this.quartz = quartz;
     }
 
-    @XmlElement(name = "Resource")
     public Resource getPentahoOpMart() {
         return pentahoOpMart;
     }
@@ -73,7 +72,7 @@ public class Context implements TomcatConf {
         this.pentahoOpMart = pentahoOpMart;
     }
 
-    @XmlElement(name = "Resource")
+    /*
     public Resource getPdiOpMart() {
         return pdiOpMart;
     }
@@ -81,4 +80,5 @@ public class Context implements TomcatConf {
     public void setPdiOpMart(Resource pdiOpMart) {
         this.pdiOpMart = pdiOpMart;
     }
+    */
 }

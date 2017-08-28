@@ -11,16 +11,16 @@ import java.util.Scanner;
 
 public class Psql implements Dialect {
     public String promptDbName(String dbName, DBInstance dbInstance, Scanner scanner) {
-        if (!dbName.equals(DBParam.DB_NAME_PENT_OP_MART)) {
-            //no need to change pentaho_operations_mart's name
-            DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), this.getDbNameLength());
-            dbNameInput.setDefaultValue(dbInstance.getName());
-            InstallUtil.ask(scanner, dbNameInput);
-
-            dbName = dbNameInput.getValue();
+        if (dbName.equals(DBParam.DB_NAME_PENT_OP_MART)/* || dbName.equals(DBParam.DB_NAME_PDI_OP_MART)*/) {
+            return dbName;
         }
 
-        return dbName;
+        //no need to change pentaho_operations_mart's name
+        DBNameInput dbNameInput = new DBNameInput(String.format("Input database name [%s]: ", dbInstance.getName()), this.getDbNameLength());
+        dbNameInput.setDefaultValue(dbInstance.getName());
+        InstallUtil.ask(scanner, dbNameInput);
+
+        return dbNameInput.getValue();
     }
 
     public String polish(String sql, DBInstance instance, Map<String, DBInstance> dbInstanceMap) {
@@ -38,7 +38,7 @@ public class Psql implements Dialect {
     }
 
     public boolean isConnect(String sql) {
-        return sql.startsWith(DBParam.POSTGRESQL_CONNECT_COMMAND_L);
+        return sql.startsWith(DBParam.POSTGRESQL_CONNECT_COMMAND_L) || sql.startsWith(DBParam.POSTGRESQL_CONNECT_COMMAND_S);
     }
 
     public String getFileSystemClass() {
@@ -46,7 +46,7 @@ public class Psql implements Dialect {
     }
 
     public String getPersistenceManagerClass() {
-        return "org.apache.jackrabbit.core.persistence.bundle.PsqlPersistenceManager";
+        return "org.apache.jackrabbit.core.persistence.bundle.PostgreSQLPersistenceManager";
     }
 
     public String getSchema() {
@@ -82,7 +82,7 @@ public class Psql implements Dialect {
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
         String dbName = dbInstance.getName();
-        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName) || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)) {
+        if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)/* || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)*/) {
             dbName = DBParam.DB_NAME_HIBERNATE;
         }
 
@@ -99,19 +99,19 @@ public class Psql implements Dialect {
     }
 
     public String getQuartzDriverDelegateClass() {
-        return "org.quartz.impl.jdbcjobstore.PsqlDelegatee";
+        return "org.quartz.impl.jdbcjobstore.PostgreSQLDelegate";
     }
 
     public String getHibernateConfigFile() {
-        return "postgresql.hibernate.cfg.xml";
+        return DBParam.DB.Psql.code + ".hibernate.cfg.xml";
     }
 
     public String getAuditDirName() {
-        return "postgresql";
+        return DBParam.DB.Psql.code;
     }
 
     public String getScriptDirName() {
-        return "postgresql";
+        return DBParam.DB.Psql.code;
     }
 
     public int getDbNameLength() {
@@ -120,5 +120,9 @@ public class Psql implements Dialect {
 
     public int getDbUserNameLength() {
         return 63;
+    }
+
+    public String[] parse(String url) {
+        return null;
     }
 }

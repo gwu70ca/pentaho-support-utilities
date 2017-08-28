@@ -5,7 +5,6 @@ import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallParam;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.db.Dialect;
-import com.pentaho.install.input.BooleanInput;
 import com.pentaho.install.post.XMLGenerator;
 import com.pentaho.install.post.tomcat.conf.server.Connector;
 import com.pentaho.install.post.tomcat.conf.server.Server;
@@ -63,8 +62,8 @@ public class TomcatXMLGenerator extends XMLGenerator {
         DBInstance penOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PENT_OP_MART);
         context.setPentahoOpMart(createResource(penOpMartDbInstance, dialect));
 
-        DBInstance pdiOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PDI_OP_MART);
-        context.setPdiOpMart(createResource(pdiOpMartDbInstance, dialect));
+        //DBInstance pdiOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PDI_OP_MART);
+        //context.setPdiOpMart(createResource(pdiOpMartDbInstance, dialect));
 
         return context;
     }
@@ -89,17 +88,19 @@ public class TomcatXMLGenerator extends XMLGenerator {
                 return success;
             }
 
-            InstallUtil.output("Updating Tomcat server configuration file");
+            InstallUtil.output("\nUpdating Tomcat server configuration file");
             BufferedWriter writer = null;
             try {
                 writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ctxFile), StandardCharsets.UTF_8));
-                if (!createContextXml(context, writer)) {
+                success = createXml(context, writer);
+                if (!success) {
                     return success;
                 }
             } catch (Exception ex) {
+                InstallUtil.error(ex.getMessage());
+            } finally {
                 close(writer);
             }
-
 
             if (InstallUtil.isDI(installParam.pentahoServerType)) {
                 TomcatConf server = createConfServer();
@@ -119,17 +120,6 @@ public class TomcatXMLGenerator extends XMLGenerator {
             }
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
-        }
-
-        return success;
-    }
-
-    public boolean createContextXml(TomcatConf context, Writer writer) {
-        boolean success = false;
-        if (!createXml(context, writer)) {
-            BooleanInput askToContinue = new BooleanInput("Do you want to continue [y/n]? ");
-            InstallUtil.ask(scanner, askToContinue);
-            success = askToContinue.yes();
         }
 
         return success;

@@ -21,7 +21,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 
 public class XMLGenerator {
-    protected boolean createXml(PentahoXMLConfig conf, Writer writer) {
+    public boolean createXml(PentahoXMLConfig conf, Writer writer) {
         boolean succeeded = false;
 
         try {
@@ -56,6 +56,7 @@ public class XMLGenerator {
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
         }
+
         return succeeded;
     }
 

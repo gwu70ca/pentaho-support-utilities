@@ -71,19 +71,17 @@ public class JDBCConnector {
             }
         }
 
-        DBInstance dbInstance = new DBInstance(dbName, dbUser, dbPass);
+        DBParam.DB databaseType = null;
+        if (dbType == null || (databaseType = guessDbType(dbType)) == null) {
+            System.out.println("Unknown database type: " + dbType);
+            System.exit(0);
+        }
+
+        DBInstance dbInstance = new DBInstance(dbName, dbUser, dbPass, databaseType);
         dbInstance.setHost(dbHost);
         dbInstance.setPort(dbPort);
         dbInstance.setWinAuth(winAuth);
         dbInstance.setJtds(jtds);
-
-        DBParam.DB databaseType;
-        if (dbType == null || (databaseType = guessDbType(dbType)) == null) {
-            System.out.println("Unknown database type: " + dbType);
-            System.exit(0);
-        } else {
-            dbInstance.setType(databaseType);
-        }
 
         if (dbPass == null && !winAuth) {
             System.out.println("Dude, we need password");
@@ -214,6 +212,8 @@ public class JDBCConnector {
         if (requiredUsernameAndPassword) {
             connectionProps.put("user", dbInstance.getUsername());
             connectionProps.put("password", dbInstance.getPassword());
+            System.out.println("user: " + dbInstance.getUsername());
+            System.out.println("password: " + dbInstance.getPassword());
         }
 
         System.out.println("Connecting to " + dbInstance.getHost() + "@" + dbInstance.getPort() + " ..... ");
