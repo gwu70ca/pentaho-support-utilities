@@ -3,6 +3,7 @@ package com.pentaho.install.post;
 import com.pentaho.install.*;
 import com.pentaho.install.action.CopyFileAction;
 import com.pentaho.install.db.Dialect;
+import com.pentaho.install.file.PentahoConfigFileHandler;
 import com.pentaho.install.input.BooleanInput;
 import com.pentaho.install.input.FileInput;
 import com.pentaho.install.input.SelectInput;
@@ -152,7 +153,7 @@ public class ConfigUpdater extends InstallAction {
         }
 
         TomcatXMLGenerator gen = new TomcatXMLGenerator(installParam, scanner);
-        boolean success = gen.createTomcatConfig();
+        boolean success = gen.createTomcatConfig(new PentahoConfigFileHandler());
 
         if (!success) {
             if (PostInstaller.SILENT) {
@@ -202,7 +203,7 @@ public class ConfigUpdater extends InstallAction {
 
     private boolean updateJackrabbit() {
         JackrabbitXMLGenerator jxg = new JackrabbitXMLGenerator(installParam, scanner);
-        return jxg.createJackrabbitConfig();
+        return jxg.createJackrabbitConfig(new PentahoConfigFileHandler());
     }
 
     private boolean updateQuartz(Dialect dialect) {

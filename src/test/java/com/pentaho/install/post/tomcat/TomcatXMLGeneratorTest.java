@@ -69,11 +69,10 @@ public class TomcatXMLGeneratorTest {
 
         String[] lines1 = xml.split("\n");
         String[] lines2 = MYSQL_XML.split("\n");
+
         Assert.assertEquals(lines1.length, lines2.length);
 
-        for (int i=0;i<lines1.length;i++) {
-            //System.out.println("generated: " + lines1[i].trim());
-            //System.out.println("expected : " + lines2[i].trim());
+        for (int i = 0; i < lines1.length; i++) {
             Assert.assertEquals(lines1[i].trim(), lines2[i].trim());
         }
     }
@@ -91,16 +90,13 @@ public class TomcatXMLGeneratorTest {
         StringWriter writer = new StringWriter();
         txg.createXml(context, writer);
         String xml = writer.toString();
-        System.out.println(xml);
         Assert.assertNotNull(xml);
 
         String[] lines1 = xml.split("\n");
         String[] lines2 = POSTGRESQL_XML.split("\n");
         Assert.assertEquals(lines1.length, lines2.length);
 
-        for (int i=0;i<lines1.length;i++) {
-            //System.out.println("generated: " + lines1[i].trim());
-            //System.out.println("expected : " + lines2[i].trim());
+        for (int i = 0; i < lines1.length; i++) {
             Assert.assertEquals(lines1[i].trim(), lines2[i].trim());
         }
     }
@@ -124,7 +120,7 @@ public class TomcatXMLGeneratorTest {
         String[] lines2 = SQLSERVER_XML.split("\n");
         Assert.assertEquals(lines1.length, lines2.length);
 
-        for (int i=0;i<lines1.length;i++) {
+        for (int i = 0; i < lines1.length; i++) {
             Assert.assertEquals(lines1[i].trim(), lines2[i].trim());
         }
     }
@@ -148,7 +144,7 @@ public class TomcatXMLGeneratorTest {
         String[] lines2 = ORACLE_XML.split("\n");
         Assert.assertEquals(lines1.length, lines2.length);
 
-        for (int i=0;i<lines1.length;i++) {
+        for (int i = 0; i < lines1.length; i++) {
             Assert.assertEquals(lines1[i].trim(), lines2[i].trim());
         }
     }

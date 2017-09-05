@@ -4,13 +4,18 @@ import com.pentaho.install.DBInstance;
 import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.PentahoServerParam;
+import com.pentaho.install.input.DBNameInput;
 
 import java.util.Map;
 import java.util.Scanner;
 
 public class Orcl implements Dialect {
     public String promptDbName(String dbName, DBInstance dbInstance, Scanner scanner) {
-        return dbName;
+        DBNameInput dbNameInput = new DBNameInput(String.format("Input database SID [%s]: ", "XE"), -1);
+        dbNameInput.setDefaultValue(dbInstance.getName());
+        InstallUtil.ask(scanner, dbNameInput);
+
+        return dbNameInput.getValue();
     }
 
     public String polish(String sql, DBInstance instance, Map<String, DBInstance> dbInstanceMap) {
@@ -78,7 +83,7 @@ public class Orcl implements Dialect {
     }
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
-        return dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/XE";
+        return dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/" + dbInstance.getName();
     }
 
     public String getDefaultPort() {

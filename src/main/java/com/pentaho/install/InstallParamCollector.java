@@ -74,10 +74,9 @@ public class InstallParamCollector {
         Dialect dialect = InstallUtil.createDialect(installParam.dbType);
 
         //Need database type to verify the "data" directory
-        boolean verified = false;
         try {
             if (!verifyDirectoryStructure(installParam, dialect)) {
-                BooleanInput askToContinue = new BooleanInput("Some of the directories are not valid, do you want to continue [y/n]? ");
+                BooleanInput askToContinue = new BooleanInput("\nSome of the directories are not valid, do you want to continue [y/n]? ");
                 InstallUtil.ask(scanner, askToContinue);
                 if (!askToContinue.yes()) {
                     System.exit(0);
@@ -106,40 +105,36 @@ public class InstallParamCollector {
     }
 
     private boolean verifyDirectoryStructure(InstallParam installParam, Dialect dialect) throws Exception {
-        boolean verified = false;
+        boolean verified = true;
         String serverRootDir = InstallUtil.getServerRootDir(installParam);
         if (!canReadAndWrite(new File(serverRootDir)) || !canReadAndWrite(new File(serverRootDir + "/data/" + dialect.getScriptDirName()))) {
             InstallUtil.output("Directory [" + serverRootDir + "] is invalid. Make sure the directory exists and current user has read/write permission.");
         } else {
             if (InstallUtil.isBA(installParam.pentahoServerType)) {
                 File analyzerDir = new File(serverRootDir + "/system/analyzer");
-                boolean analyzerDirValid = isValidDir(analyzerDir);
-                if (!analyzerDirValid) {
+                if (!isValidDir(analyzerDir)) {
                     InstallUtil.output("Analyzer directory [" + analyzerDir + "] is invalid.");
+                    verified = false;
                 }
 
                 File dashboardsDir = new File(serverRootDir + "/system/dashboards");
-                boolean dashboardsDirValid = isValidDir(dashboardsDir);
-                if (!dashboardsDirValid) {
+                if (!isValidDir(dashboardsDir)) {
                     InstallUtil.output("Dashboards directory [" + dashboardsDir + "] is invalid.");
+                    verified = false;
                 }
 
                 File pirDir = new File(serverRootDir + "/system/pentaho-interactive-reporting");
-                boolean pirDirValid = isValidDir(pirDir);
-                if (!pirDirValid) {
+                if (!isValidDir(pirDir)) {
                     InstallUtil.output("Pentaho Interactive Report directory [" + pirDir + "] is invalid.");
+                    verified = false;
                 }
 
                 File pmpDir = new File(serverRootDir + "/system/pentaho-mobile-plugin");
-                boolean pmpDirValid = isValidDir(pmpDir);
-                if (!pmpDirValid) {
+                if (!isValidDir(pmpDir)) {
                     InstallUtil.output("Pentaho Mobile Plugin directory [" + pmpDir + "] is invalid.");
+                    verified = false;
                 }
-
-                verified = true;
             } else if (InstallUtil.isDI(installParam.pentahoServerType) || InstallUtil.isHYBRID(installParam.pentahoServerType)) {
-
-                verified = true;
             }
         }
         return verified;

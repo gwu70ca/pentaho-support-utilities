@@ -1,23 +1,25 @@
 package com.pentaho.install.post.jackrabbit;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @XmlRootElement(name = "Security")
-@XmlType(propOrder = {"securityManager", "accessManager", "loginModule"})
+@XmlAccessorType(XmlAccessType.FIELD)
 public class Security {
+    @XmlAttribute
     private String appName = "Jackrabbit";
+    @XmlElement(name = "SecurityManager")
     private SecurityManager securityManager = new SecurityManager();
+    @XmlElement(name = "AccessManager")
     private AccessManager accessManager = new AccessManager();
+    @XmlElement(name = "LoginModule")
     private LoginModule loginModule = new LoginModule();
 
     public String getAppName() {
         return appName;
     }
 
-    @XmlAttribute
     public void setAppName(String appName) {
         this.appName = appName;
     }
@@ -26,7 +28,6 @@ public class Security {
         return securityManager;
     }
 
-    @XmlElement(name = "SecurityManager")
     public void setSecurityManager(SecurityManager securityManager) {
         this.securityManager = securityManager;
     }
@@ -35,7 +36,6 @@ public class Security {
         return accessManager;
     }
 
-    @XmlElement(name = "AccessManager")
     public void setAccessManager(AccessManager accessManager) {
         this.accessManager = accessManager;
     }
@@ -44,22 +44,23 @@ public class Security {
         return loginModule;
     }
 
-    @XmlElement(name = "LoginModule")
     public void setLoginModule(LoginModule loginModule) {
         this.loginModule = loginModule;
     }
 }
 
 @XmlRootElement(name = "SecurityManager")
+@XmlAccessorType(XmlAccessType.FIELD)
 class SecurityManager {
+    @XmlAttribute(name = "class")
     private String clazz = "org.apache.jackrabbit.core.DefaultSecurityManager";
+    @XmlAttribute(name = "workspaceName")
     private String workspaceName = "security";
 
     public String getClazz() {
         return clazz;
     }
 
-    @XmlAttribute(name = "class")
     public void setClazz(String clazz) {
         this.clazz = clazz;
     }
@@ -68,87 +69,41 @@ class SecurityManager {
         return workspaceName;
     }
 
-    @XmlAttribute(name = "workspaceName")
     public void setWorkspaceName(String workspaceName) {
         this.workspaceName = workspaceName;
     }
 }
 
 @XmlRootElement(name = "AccessManager")
+@XmlAccessorType(XmlAccessType.FIELD)
 class AccessManager {
+    @XmlAttribute(name = "class")
     private String clazz = "org.apache.jackrabbit.core.security.DefaultAccessManager";
 
     public String getClazz() {
         return clazz;
     }
 
-    @XmlAttribute(name = "class")
     public void setClazz(String clazz) {
         this.clazz = clazz;
     }
 }
 
 @XmlRootElement(name = "LoginModule")
-@XmlType(propOrder = {"anonymousId","adminId","principalProvider","preAuthenticationTokens","trustCredentialsAttribute"})
+@XmlAccessorType(XmlAccessType.FIELD)
 class LoginModule {
-    private String clazz = "org.pentaho.platform.repository2.unified.jcr.jackrabbit.security.SpringSecurityLoginModule";
-    private Param anonymousId = new Param("anonymousId", "anonymous");
-    private Param adminId = new Param("adminId", "pentahoRepoAdmin");
-    private Param principalProvider = new Param("principalProvider", "org.pentaho.platform.repository2.unified.jcr.jackrabbit.security.SpringSecurityPrincipalProvider");
-    private Param preAuthenticationTokens = new Param("preAuthenticationTokens", "ZchBOvP8q9FQ");
-    private Param trustCredentialsAttribute = new Param("trust_credentials_attribute", "pre_authentication_token");
-
-    public String getClazz() {
-        return clazz;
-    }
-
     @XmlAttribute(name = "class")
-    public void setClazz(String clazz) {
-        this.clazz = clazz;
-    }
-
-    public Param getAnonymousId() {
-        return anonymousId;
-    }
+    private String clazz = "org.pentaho.platform.repository2.unified.jcr.jackrabbit.security.SpringSecurityLoginModule";
 
     @XmlElement(name = "param")
-    public void setAnonymousId(Param anonymousId) {
-        this.anonymousId = anonymousId;
-    }
+    private List<Param> paramList;
 
-    public Param getAdminId() {
-        return adminId;
-    }
-
-    @XmlElement(name = "param")
-    public void setAdminId(Param adminId) {
-        this.adminId = adminId;
-    }
-
-    public Param getPrincipalProvider() {
-        return principalProvider;
-    }
-
-    @XmlElement(name = "param")
-    public void setPrincipalProvider(Param principalProvider) {
-        this.principalProvider = principalProvider;
-    }
-
-    public Param getPreAuthenticationTokens() {
-        return preAuthenticationTokens;
-    }
-
-    @XmlElement(name = "param")
-    public void setPreAuthenticationTokens(Param preAuthenticationTokens) {
-        this.preAuthenticationTokens = preAuthenticationTokens;
-    }
-
-    public Param getTrustCredentialsAttribute() {
-        return trustCredentialsAttribute;
-    }
-
-    @XmlElement(name = "param")
-    public void setTrustCredentialsAttribute(Param trustCredentialsAttribute) {
-        this.trustCredentialsAttribute = trustCredentialsAttribute;
+    public LoginModule() {
+        paramList = new ArrayList<>();
+        paramList.add(new Param("anonymousId", "anonymous"));
+        paramList.add(new Param("adminId", "pentahoRepoAdmin"));
+        paramList.add(new Param("principalProvider", "org.pentaho.platform.repository2.unified.jcr.jackrabbit.security.SpringSecurityPrincipalProvider"));
+        paramList.add(new Param("preAuthenticationTokens", "ZchBOvP8q9FQ"));
+        paramList.add(new Param("trust_credentials_attribute", "pre_authentication_token"));
     }
 }

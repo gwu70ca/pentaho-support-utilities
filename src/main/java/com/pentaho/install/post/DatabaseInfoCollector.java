@@ -217,6 +217,8 @@ public class DatabaseInfoCollector extends InstallAction {
             InstallUtil.ask(scanner, adminPasswordInput);
             dbParam.setAdminPassword(adminPasswordInput.getValue());
 
+            //TODO test JDBC connection before asking other parameters
+
             InstallUtil.newLine();
             System.out.println("Installer is going to create database with admin username [" + dbParam.getAdminUser() + "]");
             InstallUtil.newLine();

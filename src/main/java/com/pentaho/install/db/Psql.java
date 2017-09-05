@@ -95,7 +95,7 @@ public class Psql implements Dialect {
     }
 
     public String getDefaultAdmin() {
-        return "system";
+        return "postgres";
     }
 
     public String getQuartzDriverDelegateClass() {

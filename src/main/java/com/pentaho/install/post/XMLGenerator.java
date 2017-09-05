@@ -15,7 +15,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -55,18 +54,9 @@ public class XMLGenerator {
             succeeded = true;
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
+            ex.printStackTrace();
         }
 
         return succeeded;
-    }
-
-    protected void close(Writer writer) {
-        if (writer != null) {
-            try {
-                writer.close();
-            } catch (IOException ioe) {
-                InstallUtil.error(ioe.getMessage());
-            }
-        }
     }
 }

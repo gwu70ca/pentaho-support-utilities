@@ -14,6 +14,7 @@ import static com.pentaho.install.InstallUtil.NEW_LINE;
 
 public class Pentsu {
     public static String PENSU = ".pensu";
+    public static boolean DEBUG = false;
 
     private static Scanner scanner = new Scanner(System.in);
 

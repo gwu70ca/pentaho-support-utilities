@@ -1,10 +1,9 @@
 package com.pentaho.install.post.tomcat;
 
-import com.pentaho.install.DBInstance;
-import com.pentaho.install.DBParam;
-import com.pentaho.install.InstallParam;
-import com.pentaho.install.InstallUtil;
+import com.pentaho.install.*;
 import com.pentaho.install.db.Dialect;
+import com.pentaho.install.file.ConfigFileHandler;
+import com.pentaho.install.file.TestConfigFileHandler;
 import com.pentaho.install.post.XMLGenerator;
 import com.pentaho.install.post.tomcat.conf.server.Connector;
 import com.pentaho.install.post.tomcat.conf.server.Server;
@@ -12,8 +11,8 @@ import com.pentaho.install.post.tomcat.conf.server.Service;
 import com.pentaho.install.post.tomcat.webapps.Context;
 import com.pentaho.install.post.tomcat.webapps.Resource;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import static com.pentaho.install.DBParam.RESOURCE_NAME_AUDIT;
@@ -39,31 +38,35 @@ public class TomcatXMLGenerator extends XMLGenerator {
     public TomcatConf createWebappsContext() {
         Context context = new Context();
 
+        List<Resource> resourceList = new ArrayList<>();
+
         DBInstance hibernateDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
         if (InstallUtil.isDI(installParam.pentahoServerType)) {
             hibernateDbInstance.setName(DBParam.DB_NAME_HIBERNATE_DI);
         }
         Dialect dialect = InstallUtil.createDialect(hibernateDbInstance);
-        context.setHibernate(createResource(hibernateDbInstance, dialect));
+        resourceList.add(createResource(hibernateDbInstance, dialect));
 
         DBInstance auditDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
         auditDbInstance.setResourceName(RESOURCE_NAME_AUDIT);
         if (InstallUtil.isDI(installParam.pentahoServerType)) {
             auditDbInstance.setName(DBParam.DB_NAME_HIBERNATE_DI);
         }
-        context.setAudit(createResource(auditDbInstance, dialect));
+        resourceList.add(createResource(auditDbInstance, dialect));
 
         DBInstance quartzDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_QUARTZ);
         if (InstallUtil.isDI(installParam.pentahoServerType)) {
             quartzDbInstance.setName(DBParam.DB_NAME_QUARTZ_DI);
         }
-        context.setQuartz(createResource(quartzDbInstance, dialect));
+        resourceList.add(createResource(quartzDbInstance, dialect));
 
         DBInstance penOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PENT_OP_MART);
-        context.setPentahoOpMart(createResource(penOpMartDbInstance, dialect));
+        resourceList.add(createResource(penOpMartDbInstance, dialect));
 
         //DBInstance pdiOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PDI_OP_MART);
         //context.setPdiOpMart(createResource(pdiOpMartDbInstance, dialect));
+
+        context.setResourceList(resourceList);
 
         return context;
     }
@@ -78,50 +81,30 @@ public class TomcatXMLGenerator extends XMLGenerator {
                 dialect.getValidationQuery());
     }
 
-    public boolean createTomcatConfig() {
+    public boolean createTomcatConfig(ConfigFileHandler configFileHandler) {
         boolean success = false;
         try {
             TomcatConf context = createWebappsContext();
-            String ctxFile = InstallUtil.getTomcatContextFilePath(installParam);
-            File original = new File(ctxFile);
-            if (!InstallUtil.backup(original, scanner)) {
-                return success;
-            }
-
-            InstallUtil.output("\nUpdating Tomcat server configuration file");
-            BufferedWriter writer = null;
-            try {
-                writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ctxFile), StandardCharsets.UTF_8));
-                success = createXml(context, writer);
-                if (!success) {
-                    return success;
-                }
-            } catch (Exception ex) {
-                InstallUtil.error(ex.getMessage());
-            } finally {
-                close(writer);
-            }
+            configFileHandler.handleTomcatContextFile(context, installParam, scanner);
 
             if (InstallUtil.isDI(installParam.pentahoServerType)) {
                 TomcatConf server = createConfServer();
-                String serverConfFile = InstallUtil.getTomcatServerConfigFilePath(installParam);
-                original = new File(serverConfFile);
-                if (!InstallUtil.backup(original, scanner)) {
-                    return success;
-                }
-
-                InstallUtil.output("Updating Tomcat server configuration file");
-                writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(serverConfFile), StandardCharsets.UTF_8));
-                try {
-                    success = createXml(server, writer);
-                } catch (Exception ex) {
-                    close(writer);
-                }
+                configFileHandler.handleTomcatServerFile(server, installParam, scanner);
             }
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
         }
 
         return success;
+    }
+
+    public static void main(String[] args) throws Exception {
+        InstallParam installParam = new InstallParam();
+        installParam.pentahoServerType = PentahoServerParam.SERVER.BA;
+        installParam.dbType = DBParam.DB.Psql;
+        installParam.dbInstanceMap = DBParam.initDbInstances(installParam.dbType);
+
+        TomcatXMLGenerator g = new TomcatXMLGenerator(installParam, new Scanner(System.in));
+        g.createTomcatConfig(new TestConfigFileHandler());
     }
 }

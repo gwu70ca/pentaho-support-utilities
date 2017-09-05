@@ -140,6 +140,6 @@ public class Resource {
     }
 
     public String toString() {
-        return "name:" + name + ", driverClassName: " + driverClassName;
+        return "name:" + name + ", driverClassName: " + driverClassName + ", url: " + url;
     }
 }
