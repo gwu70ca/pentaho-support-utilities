@@ -77,7 +77,7 @@ public class JDBCConnector {
             System.exit(0);
         }
 
-        DBInstance dbInstance = new DBInstance(dbName, dbUser, dbPass, databaseType);
+        DBInstance dbInstance = new DBInstance(dbName, dbUser, dbPass, databaseType, "");
         dbInstance.setHost(dbHost);
         dbInstance.setPort(dbPort);
         dbInstance.setWinAuth(winAuth);

@@ -157,7 +157,9 @@ public class JackrabbitXMLGenerator extends XMLGenerator {
         paramList.add(url);
         paramList.add(user);
         paramList.add(password);
-        paramList.add(schema);
+        if (!isOrcl) {
+            paramList.add(schema);
+        }
         paramList.add(schemaObjectPrefix);
         if (isOrcl) {
             paramList.add(tablespace);

@@ -111,25 +111,25 @@ public class InstallParamCollector {
             InstallUtil.output("Directory [" + serverRootDir + "] is invalid. Make sure the directory exists and current user has read/write permission.");
         } else {
             if (InstallUtil.isBA(installParam.pentahoServerType)) {
-                File analyzerDir = new File(serverRootDir + "/system/analyzer");
+                File analyzerDir = new File(serverRootDir + "/pentaho-solutions/system/analyzer");
                 if (!isValidDir(analyzerDir)) {
                     InstallUtil.output("Analyzer directory [" + analyzerDir + "] is invalid.");
                     verified = false;
                 }
 
-                File dashboardsDir = new File(serverRootDir + "/system/dashboards");
+                File dashboardsDir = new File(serverRootDir + "/pentaho-solutions/system/dashboards");
                 if (!isValidDir(dashboardsDir)) {
                     InstallUtil.output("Dashboards directory [" + dashboardsDir + "] is invalid.");
                     verified = false;
                 }
 
-                File pirDir = new File(serverRootDir + "/system/pentaho-interactive-reporting");
+                File pirDir = new File(serverRootDir + "/pentaho-solutions/system/pentaho-interactive-reporting");
                 if (!isValidDir(pirDir)) {
                     InstallUtil.output("Pentaho Interactive Report directory [" + pirDir + "] is invalid.");
                     verified = false;
                 }
 
-                File pmpDir = new File(serverRootDir + "/system/pentaho-mobile-plugin");
+                File pmpDir = new File(serverRootDir + "/pentaho-solutions/system/pentaho-mobile-plugin");
                 if (!isValidDir(pmpDir)) {
                     InstallUtil.output("Pentaho Mobile Plugin directory [" + pmpDir + "] is invalid.");
                     verified = false;

@@ -135,7 +135,7 @@ public class Connector {
         Dialect dialect = InstallUtil.createDialect(dbType);
 
         String defaultAdminUser = dialect.getDefaultAdmin();
-        DBInstance dbInstance = new DBInstance("", defaultAdminUser, "", dbType);
+        DBInstance dbInstance = new DBInstance("", defaultAdminUser, "", dbType, "");
 
         StringInput dbHostInput = new StringInput("");
         setDefaultValue(DB_SERVER, dbInstance.getHost(), dbHostInput);

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Context docbase="webapps/pentaho/" path="/pentaho">
+    <Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" factory="org.apache.commons.dbcp.BasicDataSourceFactory" maxIdle="5" maxTotal="20" maxWaitMillis="10000" name="jdbc/Hibernate" password="password" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/hibernate" username="hibuser" validationQuery="select 1"/>
+    <Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" factory="org.apache.commons.dbcp.BasicDataSourceFactory" maxIdle="5" maxTotal="20" maxWaitMillis="10000" name="jdbc/Audit" password="password" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/hibernate" username="hibuser" validationQuery="select 1"/>
+    <Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" factory="org.apache.commons.dbcp.BasicDataSourceFactory" maxIdle="5" maxTotal="20" maxWaitMillis="10000" name="jdbc/Quartz" password="password" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/quartz" username="pentaho_user" validationQuery="select 1"/>
+    <Resource auth="Container" driverClassName="com.mysql.jdbc.Driver" factory="org.apache.commons.dbcp.BasicDataSourceFactory" maxIdle="5" maxTotal="20" maxWaitMillis="10000" name="jdbc/pentaho_operations_mart" password="password" type="javax.sql.DataSource" url="jdbc:mysql://localhost:3306/pentaho_operations_mart" username="hibuser" validationQuery="select 1"/>
+</Context>

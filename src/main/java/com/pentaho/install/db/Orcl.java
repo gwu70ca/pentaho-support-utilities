@@ -5,17 +5,31 @@ import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.PentahoServerParam;
 import com.pentaho.install.input.DBNameInput;
+import com.pentaho.install.input.DBUsernameInput;
+import com.pentaho.install.input.StringInput;
 
 import java.util.Map;
 import java.util.Scanner;
 
 public class Orcl implements Dialect {
     public String promptDbName(String dbName, DBInstance dbInstance, Scanner scanner) {
-        DBNameInput dbNameInput = new DBNameInput(String.format("Input database SID [%s]: ", "XE"), -1);
-        dbNameInput.setDefaultValue(dbInstance.getName());
+        DBNameInput dbNameInput = new DBNameInput(String.format("Input database SID [%s]: ", DBParam.DEFAULT_ORACLE_SID), -1);
+        dbNameInput.setDefaultValue(DBParam.DEFAULT_ORACLE_SID);
         InstallUtil.ask(scanner, dbNameInput);
 
         return dbNameInput.getValue();
+    }
+
+    public String promptDbUsername(String dbName, DBInstance dbInstance, Scanner scanner) {
+        DBUsernameInput dbUsernameInput = new DBUsernameInput(String.format("Input username for [%s]: ", dbInstance.getName()), this);
+        InstallUtil.ask(scanner, dbUsernameInput);
+        return dbUsernameInput.getValue();
+    }
+
+    public String promptDbPassword(String dbName, DBInstance dbInstance, Scanner scanner) {
+        StringInput dbPasswordInput = new StringInput(String.format("Input password for [%s]: ", dbInstance.getName()));
+        InstallUtil.ask(scanner, dbPasswordInput);
+        return dbPasswordInput.getValue();
     }
 
     public String polish(String sql, DBInstance instance, Map<String, DBInstance> dbInstanceMap) {
@@ -25,7 +39,6 @@ public class Orcl implements Dialect {
         if (sql.endsWith(";")) {
             sql = sql.substring(0, sql.length() - 1);
         }
-
         return sql;
     }
 
@@ -44,11 +57,11 @@ public class Orcl implements Dialect {
     }
 
     public String getFileSystemClass() {
-        return "org.apache.jackrabbit.core.fs.db.OrclFileSystem";
+        return "org.apache.jackrabbit.core.fs.db.OracleFileSystem";
     }
 
     public String getPersistenceManagerClass() {
-        return "org.apache.jackrabbit.core.persistence.bundle.OrclPersistenceManager";
+        return "org.apache.jackrabbit.core.persistence.bundle.OraclePersistenceManager";
     }
 
     public String getSchema() {
@@ -63,7 +76,7 @@ public class Orcl implements Dialect {
         if (InstallUtil.isBA(serverType)) {
             return "org.apache.jackrabbit.core.journal.MemoryJournal";
         }
-        return "org.apache.jackrabbit.core.journal.OrclDatabaseJournal";
+        return "org.apache.jackrabbit.core.journal.OracleDatabaseJournal";
     }
 
     public String getRevision() {
@@ -83,7 +96,7 @@ public class Orcl implements Dialect {
     }
 
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
-        return dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/" + dbInstance.getName();
+        return dbInstance.getJdbcPrefix() + dbInstance.getHost() + ":" + dbInstance.getPort() + "/" + dbInstance.getSid();
     }
 
     public String getDefaultPort() {
@@ -95,7 +108,7 @@ public class Orcl implements Dialect {
     }
 
     public String getQuartzDriverDelegateClass() {
-        return "org.quartz.impl.jdbcjobstore.oracle.OrclDelegate";
+        return "org.quartz.impl.jdbcjobstore.oracle.OracleDelegate";
     }
 
     public String getHibernateConfigFile() {
@@ -124,5 +137,9 @@ public class Orcl implements Dialect {
 
     public String[] parse(String url) {
         return null;
+    }
+
+    public String getDefaultQuartzUsername() {
+        return "quartz";
     }
 }

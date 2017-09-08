@@ -6,6 +6,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DBParam {
+	public static String DEFAULT_ORACLE_SID = "XE";
+	public static String DEFAULT_PASSWORD = "password";
+
 	public enum DB {
 		Mysql ("MYSQL", "MySQL", "mysql5"),
 		Psql ("PSQL", "PostgreSQL", "postgresql"),
@@ -46,23 +49,23 @@ public class DBParam {
 	public static String RESOURCE_NAME_PENTAHO_OPERATIONS_MART = "jdbc/pentaho_operations_mart";
 	//public static String RESOURCE_NAME_PDI_OPERATIONS_MART = "jdbc/PDI_Operations_Mart";
 
-	public static String DB_NAME_HIBERNATE = "hibernate";
-	public static String DB_NAME_JACKRABBIT = "jackrabbit";
-	public static String DB_NAME_QUARTZ = "quartz";
-	public static String DB_NAME_PENT_OP_MART = "pentaho_operations_mart";
+	public final static String DB_NAME_HIBERNATE = "hibernate";
+	public final static String DB_NAME_JACKRABBIT = "jackrabbit";
+	public final static String DB_NAME_QUARTZ = "quartz";
+	public final static String DB_NAME_PENT_OP_MART = "pentaho_operations_mart";
 	//public static String DB_NAME_PDI_OP_MART = "pdi_operations_mart";
 
-    public static String DB_NAME_HIBERNATE_DI = "di_hibernate";
-    public static String DB_NAME_JACKRABBIT_DI = "di_jackrabbit";
-    public static String DB_NAME_QUARTZ_DI = "di_quartz";
+    public final static String DB_NAME_HIBERNATE_DI = "di_hibernate";
+    public final static String DB_NAME_JACKRABBIT_DI = "di_jackrabbit";
+    public final static String DB_NAME_QUARTZ_DI = "di_quartz";
 
 	public static Map<String, DBInstance> initDbInstances(DB dbType) {
 		Map<String, DBInstance> dbInstanceMap = new LinkedHashMap<>();
-        dbInstanceMap.put(DBParam.DB_NAME_HIBERNATE, new DBInstance(DBParam.DB_NAME_HIBERNATE, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_HIBERNATE));
-        dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, "jcr_user", "password", dbType, ""));
-        dbInstanceMap.put(DBParam.DB_NAME_QUARTZ, new DBInstance(DBParam.DB_NAME_QUARTZ, "pentaho_user", "password", dbType, DBParam.RESOURCE_NAME_QUARTZ));
-        dbInstanceMap.put(DBParam.DB_NAME_PENT_OP_MART, new DBInstance(DBParam.DB_NAME_PENT_OP_MART, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_PENTAHO_OPERATIONS_MART));
-        //dbInstanceMap.put(DBParam.DB_NAME_PDI_OP_MART, new DBInstance(DBParam.DB_NAME_PDI_OP_MART, "hibuser", "password", dbType, DBParam.RESOURCE_NAME_PDI_OPERATIONS_MART));
+        dbInstanceMap.put(DBParam.DB_NAME_HIBERNATE, new DBInstance(DBParam.DB_NAME_HIBERNATE, dbType));
+        dbInstanceMap.put(DBParam.DB_NAME_JACKRABBIT, new DBInstance(DBParam.DB_NAME_JACKRABBIT, dbType));
+        dbInstanceMap.put(DBParam.DB_NAME_QUARTZ, new DBInstance(DBParam.DB_NAME_QUARTZ, dbType));
+        dbInstanceMap.put(DBParam.DB_NAME_PENT_OP_MART, new DBInstance(DBParam.DB_NAME_PENT_OP_MART, dbType));
+        //dbInstanceMap.put(DBParam.DB_NAME_PDI_OP_MART, new DBInstance(DBParam.DB_NAME_PDI_OP_MART, dbType));
 		
 		return dbInstanceMap;
 	}
@@ -86,13 +89,9 @@ public class DBParam {
 		this.type = type;
         this.dialect = InstallUtil.createDialect(this.type);
 
-		initDbProperty();
+		this.jdbcPrefix = dialect.getJdbcPrefix();
+		this.port = dialect.getDefaultPort();
 	}
-
-	protected void initDbProperty() {
-        this.jdbcPrefix = dialect.getJdbcPrefix();
-        this.port = dialect.getDefaultPort();
-    }
 
 	public String getJdbcPrefix() {
 		return jdbcPrefix;

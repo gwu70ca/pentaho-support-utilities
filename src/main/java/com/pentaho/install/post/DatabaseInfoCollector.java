@@ -5,7 +5,6 @@ import com.pentaho.install.DBParam.DB;
 import com.pentaho.install.PentahoServerParam.SERVER;
 import com.pentaho.install.db.Dialect;
 import com.pentaho.install.input.BooleanInput;
-import com.pentaho.install.input.DBUsernameInput;
 import com.pentaho.install.input.IntegerInput;
 import com.pentaho.install.input.StringInput;
 
@@ -166,7 +165,7 @@ public class DatabaseInfoCollector extends InstallAction {
             buf.append(entry.getValue().toString());
             buf.append(InstallUtil.shortBar());
         }
-        buf.append("\n\n");
+        buf.append("\n");
         return buf.toString();
     }
 
@@ -264,16 +263,13 @@ public class DatabaseInfoCollector extends InstallAction {
                         dbPassword = hibernateInstance.getPassword();
                         InstallUtil.output("This database uses same username/password as database [hibernate]");
                     } else {
-                        DBUsernameInput dbUsernameInput = new DBUsernameInput(String.format("Input username for [%s]: ", dbName), dialect);
-                        InstallUtil.ask(scanner, dbUsernameInput);
-                        dbUsername = dbUsernameInput.getValue();
-
-                        StringInput dbPasswordInput = new StringInput(String.format("Input password for [%s]: ", dbName));
-                        InstallUtil.ask(scanner, dbPasswordInput);
-                        dbPassword = dbPasswordInput.getValue();
+                        dbUsername = dialect.promptDbUsername(dbName, dbInstance, scanner);
+                        dbPassword = dialect.promptDbPassword(dbName, dbInstance, scanner);
                     }
 
+                    //TODO merge these two
                     dbInstance.setName(dbName);
+                    dbInstance.setSid(dbName);
                     dbInstance.setUsername(dbUsername);
                     dbInstance.setPassword(dbPassword);
                     dbInstance.setCustomed(true);
@@ -283,7 +279,7 @@ public class DatabaseInfoCollector extends InstallAction {
             }
 
             if (!manualCreateDb) {
-                BooleanInput askForProceed = new BooleanInput("Installer is going to create these database(s):" + getInstanceDetail() + "Do you want to continue [y/n]? ");
+                BooleanInput askForProceed = new BooleanInput("Installer is going to create these database(s):" + getInstanceDetail() + "\nDo you want to continue [y/n]? ");
                 InstallUtil.ask(scanner, askForProceed);
                 if (askForProceed.yes()) {
                     break;

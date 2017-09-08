@@ -1,5 +1,7 @@
 package com.pentaho.install;
 
+import com.pentaho.install.db.PentahoDB;
+
 public class DBInstance extends DBParam {
     private String dbFileName;
     private String name;
@@ -13,12 +15,19 @@ public class DBInstance extends DBParam {
     private boolean winAuth;
     private boolean jtds;
     private String domain;
+    private String sid;
 
-    public DBInstance(String name, String username, String password, DB dbType) {
-        this.name = this.defaultName = name;
-        this.username = this.defaultUsername = username;
-        this.password = this.defaultPassword = password;
+    public DBInstance(String name, DB dbType) {
         setType(dbType);
+
+        this.name = this.defaultName = name;
+        this.password = this.defaultPassword = DEFAULT_PASSWORD;
+
+        PentahoDB pdb = InstallUtil.createPentahoDB(name, dialect);
+        pdb.setDefaultDbProperties(this);
+
+        //TODO move to dialect
+        this.sid = DEFAULT_ORACLE_SID;
     }
 
     public DBInstance(String name, String username, String password, DB dbType, String resourceName) {
@@ -28,8 +37,6 @@ public class DBInstance extends DBParam {
         this.resourceName = resourceName;
 
         setType(dbType);
-
-        initDbProperty();
     }
 
     public String getDbFileName() {
@@ -128,8 +135,16 @@ public class DBInstance extends DBParam {
         this.domain = domain;
     }
 
+    public String getSid() {
+        return sid;
+    }
+
+    public void setSid(String sid) {
+        this.sid = sid;
+    }
+
     public String toString() {
-        return super.toString() + "\nResource name: " + resourceName + ", DB name: " + this.name + ", username: " + username + ", password: " + password + ", is customized: " + this.customed + "\n"
-                + (this.dbFileName != null ? ("DB script file: " + this.dbFileName):"");
+        return super.toString() + "\nResource name: " + resourceName + ", DB name: " + this.name + ", SID: " + this.sid + ", username: " + username + ", password: " + password + ", is customized: " + this.customed + "\n"
+                + (this.dbFileName != null ? ("DB script file: " + this.dbFileName) : "");
     }
 }

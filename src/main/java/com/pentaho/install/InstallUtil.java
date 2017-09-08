@@ -179,6 +179,28 @@ public class InstallUtil {
         return d;
     }
 
+    public static PentahoDB createPentahoDB(String dbName, Dialect dialect) {
+        PentahoDB pdb = null;
+        switch (dbName) {
+            case DBParam.DB_NAME_HIBERNATE:
+                pdb = new Hibernate(dialect);
+                break;
+            case DBParam.DB_NAME_JACKRABBIT:
+                pdb = new Jackrabbit(dialect);
+                break;
+            case DBParam.DB_NAME_QUARTZ:
+                pdb = new Quartz(dialect);
+                break;
+            case DBParam.DB_NAME_PENT_OP_MART:
+                pdb = new PenOpMart(dialect);
+                break;
+            default:
+                break;
+        }
+
+        return pdb;
+    }
+
     public static boolean backup(File original, Scanner scanner) {
         boolean success = false;
 

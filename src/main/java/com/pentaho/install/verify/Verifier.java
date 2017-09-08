@@ -146,7 +146,7 @@ public class Verifier {
         String password = propertyMap.get(SessionFactory.connectionPassword).getValue();
         String[] dbParams = dialect.parse(url);
 
-        DBInstance dbInstance = new DBInstance(dbParams[2], username, password, dbType);
+        DBInstance dbInstance = new DBInstance(dbParams[2], username, password, dbType, "");
         dbInstance.setHost(dbParams[0]);
         dbInstance.setPort(dbParams[1]);
 
@@ -197,7 +197,7 @@ public class Verifier {
             String password = resource.getPassword();
             String[] dbParams = dialect.parse(url);
 
-            DBInstance dbInstance = new DBInstance(dbParams[2], username, password, dbType);
+            DBInstance dbInstance = new DBInstance(dbParams[2], username, password, dbType, "");
             dbInstance.setHost(dbParams[0]);
             dbInstance.setPort(dbParams[1]);
             succeeded = succeeded && jdbcConnector.test(dbInstance);

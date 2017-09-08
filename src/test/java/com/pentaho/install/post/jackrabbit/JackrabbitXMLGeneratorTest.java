@@ -72,7 +72,7 @@ public class JackrabbitXMLGeneratorTest {
     }
 
     private void assertAllLines(String xml, String filename) {
-        System.out.println(xml);
+        //System.out.println(xml);
 
         URL url = this.getClass().getResource(filename);
         File file = new File(url.getFile());

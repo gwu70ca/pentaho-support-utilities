@@ -91,6 +91,8 @@ public class TomcatXMLGenerator extends XMLGenerator {
                 TomcatConf server = createConfServer();
                 configFileHandler.handleTomcatServerFile(server, installParam, scanner);
             }
+
+            success = true;
         } catch (Exception ex) {
             InstallUtil.error(ex.getMessage());
         }
