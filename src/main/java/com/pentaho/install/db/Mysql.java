@@ -96,7 +96,7 @@ public class Mysql implements Dialect {
     }
 
     public String getHibernateConfigFile() {
-        return DBParam.DB.Mysql.code + ".hibernate.cfg.xml";
+        return String.format(HIBERNATE_CFG_XML, DBParam.DB.Mysql.code);
     }
 
     public String getAuditDirName() {

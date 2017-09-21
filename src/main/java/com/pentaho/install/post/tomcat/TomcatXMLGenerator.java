@@ -45,7 +45,8 @@ public class TomcatXMLGenerator extends XMLGenerator {
             hibernateDbInstance.setName(DBParam.DB_NAME_HIBERNATE_DI);
         }
         Dialect dialect = InstallUtil.createDialect(hibernateDbInstance);
-        resourceList.add(createResource(hibernateDbInstance, dialect));
+        Resource hibernateResource = createResource(hibernateDbInstance, dialect);
+        resourceList.add(hibernateResource);
 
         DBInstance auditDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_HIBERNATE);
         auditDbInstance.setResourceName(RESOURCE_NAME_AUDIT);
@@ -61,7 +62,11 @@ public class TomcatXMLGenerator extends XMLGenerator {
         resourceList.add(createResource(quartzDbInstance, dialect));
 
         DBInstance penOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PENT_OP_MART);
-        resourceList.add(createResource(penOpMartDbInstance, dialect));
+        Resource penOpMartResource = createResource(penOpMartDbInstance, dialect);
+        if (InstallUtil.isSqlserver(installParam.dbType) || InstallUtil.isPostgresql(installParam.dbType)) {
+            penOpMartResource.setUrl(hibernateResource.getUrl());
+        }
+        resourceList.add(penOpMartResource);
 
         //DBInstance pdiOpMartDbInstance = installParam.dbInstanceMap.get(DBParam.DB_NAME_PDI_OP_MART);
         //context.setPdiOpMart(createResource(pdiOpMartDbInstance, dialect));

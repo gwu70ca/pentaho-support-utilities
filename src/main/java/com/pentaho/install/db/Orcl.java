@@ -4,7 +4,6 @@ import com.pentaho.install.DBInstance;
 import com.pentaho.install.DBParam;
 import com.pentaho.install.InstallUtil;
 import com.pentaho.install.PentahoServerParam;
-import com.pentaho.install.input.DBNameInput;
 import com.pentaho.install.input.DBUsernameInput;
 import com.pentaho.install.input.StringInput;
 
@@ -13,11 +12,7 @@ import java.util.Scanner;
 
 public class Orcl implements Dialect {
     public String promptDbName(String dbName, DBInstance dbInstance, Scanner scanner) {
-        DBNameInput dbNameInput = new DBNameInput(String.format("Input database SID [%s]: ", DBParam.DEFAULT_ORACLE_SID), -1);
-        dbNameInput.setDefaultValue(DBParam.DEFAULT_ORACLE_SID);
-        InstallUtil.ask(scanner, dbNameInput);
-
-        return dbNameInput.getValue();
+        return dbName;
     }
 
     public String promptDbUsername(String dbName, DBInstance dbInstance, Scanner scanner) {
@@ -112,7 +107,7 @@ public class Orcl implements Dialect {
     }
 
     public String getHibernateConfigFile() {
-        return DBParam.DB.Orcl.code + ".hibernate.cfg.xml";
+        return String.format(HIBERNATE_CFG_XML, DBParam.DB.Orcl.code);
     }
 
     public String getAuditDirName() {

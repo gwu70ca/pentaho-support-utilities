@@ -19,9 +19,11 @@ public class InstallUtil {
     public static String exitMenuEntry() {
         return InstallUtil.EXIT + ": Exit";
     }
+
     public static String bar() {
         return "================================================================================";
     }
+
     public static String shortBar() {
         return "\n--------------------\n";
     }
@@ -82,7 +84,19 @@ public class InstallUtil {
     }
 
     public static boolean isOrcl(DBInstance dbInstance) {
-        return dbInstance.getType().equals(DB.Orcl);
+        return DB.Orcl.equals(dbInstance.getType());
+    }
+
+    public static boolean isOrcl(DBParam.DB dbType) {
+        return DB.Orcl.equals(dbType);
+    }
+
+    public static boolean isSqlserver(DBParam.DB dbType) {
+        return DB.Sqlserver.equals(dbType);
+    }
+
+    public static boolean isPostgresql(DBParam.DB dbType) {
+        return DB.Psql.equals(dbType);
     }
 
     public static boolean isWindows() {

@@ -189,6 +189,19 @@ public class DatabaseInfoCollector extends InstallAction {
         InstallUtil.ask(scanner, dbPortInput);
         dbParam.setPort(dbPortInput.getValue());
 
+        if (InstallUtil.isOrcl(dbType)) {
+            //Ask for Oracle SID
+            StringInput oracleSidInput = new StringInput(String.format("Oracle SID [%s]: ", DBParam.DEFAULT_ORACLE_SID));
+            oracleSidInput.setDefaultValue(DBParam.DEFAULT_ORACLE_SID);
+            InstallUtil.ask(scanner, oracleSidInput);
+            dbParam.setOracleSid(oracleSidInput.getValue());
+
+            StringInput oracleTablespaceInput = new StringInput(String.format("Oracle table space [%s]: ", DBParam.DEFAULT_ORACLE_TABLESPACE));
+            oracleTablespaceInput.setDefaultValue(DBParam.DEFAULT_ORACLE_TABLESPACE);
+            InstallUtil.ask(scanner, oracleTablespaceInput);
+            dbParam.setOracleTablespace(oracleTablespaceInput.getValue());
+        }
+
         InstallUtil.newLine();
 
         BooleanInput createDbInput = new BooleanInput("Pentaho server requires the following databases to operate: " + dbInstanceMap.keySet() + ". Do you want installer to create them for you [y/n]? ");
@@ -251,6 +264,7 @@ public class DatabaseInfoCollector extends InstallAction {
                 if (customDb) {
                     InstallUtil.newLine();
 
+                    //Ask database name
                     dbName = dialect.promptDbName(dbName, dbInstance, scanner);
 
                     dialect.setDefaultUsername(dbName, dbInstance, serverType);

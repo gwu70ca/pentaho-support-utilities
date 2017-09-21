@@ -90,4 +90,6 @@ public interface Dialect {
     default String getDefaultPenOpMartResourcename() {
         return DBParam.RESOURCE_NAME_PENTAHO_OPERATIONS_MART;
     }
+
+    String HIBERNATE_CFG_XML = "%s.hibernate.cfg.xml";
 }

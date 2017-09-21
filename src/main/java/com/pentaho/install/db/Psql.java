@@ -103,7 +103,7 @@ public class Psql implements Dialect {
     }
 
     public String getHibernateConfigFile() {
-        return DBParam.DB.Psql.code + ".hibernate.cfg.xml";
+        return String.format(HIBERNATE_CFG_XML, DBParam.DB.Psql.code);
     }
 
     public String getAuditDirName() {

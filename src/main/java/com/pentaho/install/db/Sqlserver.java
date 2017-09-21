@@ -89,6 +89,7 @@ public class Sqlserver implements Dialect {
     public String getJdbcUrl(DBInstance dbInstance, boolean isAdmin) {
         String dbName = dbInstance.getName();
         if (DBParam.DB_NAME_PENT_OP_MART.equals(dbName)/* || DBParam.DB_NAME_PDI_OP_MART.equals(dbName)*/) {
+            //TODO Need customed name
             dbName = DBParam.DB_NAME_HIBERNATE;
         }
 
@@ -121,7 +122,7 @@ public class Sqlserver implements Dialect {
     }
 
     public String getHibernateConfigFile() {
-        return DBParam.DB.Sqlserver.code + "sqlserver.hibernate.cfg.xml";
+        return String.format(HIBERNATE_CFG_XML, DBParam.DB.Sqlserver.code);
     }
 
     public String getAuditDirName() {
