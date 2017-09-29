@@ -8,7 +8,7 @@ import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class FileSystem {
-    @XmlAttribute
+    @XmlAttribute(name = "class")
     private String clazz = "org.apache.jackrabbit.core.fs.db.DbFileSystem";
 
     @XmlElement(name = "param")
